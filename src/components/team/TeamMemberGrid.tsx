@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MoreHorizontal, Mail, Phone, Edit, Trash2, Shield, Clock, MapPin } from 'lucide-react';
+import { useState } from 'react';
+import { MoreHorizontal, Mail, Phone, Edit, Trash2, Shield, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

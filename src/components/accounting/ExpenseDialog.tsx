@@ -271,7 +271,7 @@ export default function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDi
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleInputChange('receipt_file', null)}
+                    onClick={() => setFormData(prev => ({ ...prev, receipt_file: null }))}
                   >
                     <X className="h-4 w-4" />
                   </Button>

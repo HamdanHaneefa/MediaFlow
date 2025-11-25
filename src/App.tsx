@@ -9,7 +9,7 @@ import { Reports } from './pages/Reports';
 import Approvals from './pages/Approvals';
 import ClientPortal from './pages/ClientPortal';
 import Assets from './pages/Assets';
-import Integrations from './pages/Integrations';
+// import Integrations from './pages/Integrations';
 import Accounting from './pages/Accounting';
 import Team from './pages/Team';
 import Proposals from './pages/Proposals';

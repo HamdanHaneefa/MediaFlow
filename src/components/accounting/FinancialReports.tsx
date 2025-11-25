@@ -93,7 +93,7 @@ export default function FinancialReports() {
 
   // Expense trends by category over time
   const categoryTrendData = monthlyData.map(month => {
-    const base = { month: month.month };
+    const base: { month: string; [key: string]: number | string } = { month: month.month };
     // Simulate category breakdown for each month
     categoryData.forEach(category => {
       base[category.name.replace('\n', ' ')] = Math.round(month.expenses * (category.value / totalExpenses));
@@ -266,7 +266,7 @@ export default function FinancialReports() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {categoryData.map((entry, index) => (
+                      {categoryData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>

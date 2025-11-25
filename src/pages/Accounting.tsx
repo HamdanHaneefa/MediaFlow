@@ -21,8 +21,8 @@ export default function Accounting() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [showIncomeDialog, setShowIncomeDialog] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
+  const [editingIncome, setEditingIncome] = useState<Income | undefined>(undefined);
 
   // Calculate summary metrics
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -44,12 +44,12 @@ export default function Accounting() {
 
   const handleCloseExpenseDialog = () => {
     setShowExpenseDialog(false);
-    setEditingExpense(null);
+    setEditingExpense(undefined);
   };
 
   const handleCloseIncomeDialog = () => {
     setShowIncomeDialog(false);
-    setEditingIncome(null);
+    setEditingIncome(undefined);
   };
 
   return (

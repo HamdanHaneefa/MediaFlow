@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { TeamMember, TeamInvitation, ProjectAssignment, TeamRole, Team, TeamProjectAssignment } from '@/types';
+import { TeamMember, TeamInvitation, ProjectAssignment, Team, TeamProjectAssignment } from '@/types';
 
 interface TeamState {
   teamMembers: TeamMember[];

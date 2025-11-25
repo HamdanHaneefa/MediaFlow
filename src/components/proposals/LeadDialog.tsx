@@ -46,7 +46,7 @@ interface LeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead?: Lead;
-  onSave: (data: Partial<Lead>) => Promise<void>;
+  onSave: (data: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
 }
 
 export function LeadDialog({

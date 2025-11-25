@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Clapperboard, Calendar, BarChart3, Video, CheckSquare, FolderOpen, Plug, DollarSign, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, Clapperboard, Calendar, BarChart3, Video, CheckSquare, FolderOpen, DollarSign, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,

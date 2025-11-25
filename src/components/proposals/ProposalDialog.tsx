@@ -47,7 +47,7 @@ interface ProposalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   proposal?: Proposal;
-  onSave: (data: Partial<Proposal>) => Promise<void>;
+  onSave: (data: Omit<Proposal, 'id' | 'proposal_number' | 'version' | 'created_at' | 'updated_at'>) => Promise<void>;
 }
 
 export function ProposalDialog({
@@ -122,6 +122,7 @@ export function ProposalDialog({
       await onSave({
         title: data.title,
         description: data.description,
+        status: 'Draft',
         type: data.type,
         lead_id: data.lead_id || undefined,
         client_id: data.client_id || undefined,
