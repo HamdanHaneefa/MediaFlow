@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useProjects } from '@/contexts/ProjectsContext';
+import { useTeamProjects } from '@/hooks/useTeamProjects';
 import { ProjectStatus, ProjectType, ProjectPhase } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,7 +21,12 @@ type ViewMode = 'grid' | 'list';
 type SortOption = 'created' | 'due_date' | 'budget' | 'title';
 
 export function Projects() {
-  const { projects, loading } = useProjects();
+  const { loading } = useProjects();
+  // For demo purposes, using '1' as current user ID (Sarah Johnson - Manager)
+  // In a real app, this would come from authentication context
+  const currentUserId = '1';
+  const { accessibleProjects } = useTeamProjects(currentUserId);
+  
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -31,7 +37,7 @@ export function Projects() {
   const [sortBy, setSortBy] = useState<SortOption>('created');
 
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = projects;
+    let filtered = accessibleProjects;
 
     if (searchQuery) {
       filtered = filtered.filter(project =>
@@ -70,7 +76,7 @@ export function Projects() {
     });
 
     return sorted;
-  }, [projects, searchQuery, statusFilter, typeFilter, phaseFilter, sortBy]);
+  }, [accessibleProjects, searchQuery, statusFilter, typeFilter, phaseFilter, sortBy]);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -163,19 +169,15 @@ export function Projects() {
           {filteredAndSortedProjects.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-500 mb-4">
-                {projects.length === 0
-                  ? 'No projects yet. Create your first project to get started.'
+                {accessibleProjects.length === 0
+                  ? 'No projects assigned to your team yet.'
                   : 'No projects match your filters.'
                 }
               </p>
-              {projects.length === 0 && (
-                <Button
-                  variant="outline"
-                  onClick={() => setDialogOpen(true)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Project
-                </Button>
+              {accessibleProjects.length === 0 && (
+                <p className="text-sm text-slate-400">
+                  Contact your manager to get assigned to projects.
+                </p>
               )}
             </div>
           ) : viewMode === 'grid' ? (

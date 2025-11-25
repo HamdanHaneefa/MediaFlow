@@ -7,6 +7,9 @@ import { ResourcesProvider } from './ResourcesContext';
 import { CrewAvailabilityProvider } from './CrewAvailabilityContext';
 import { ClientPortalProvider } from './ClientPortalContext';
 import { AssetsProvider } from './AssetsContext';
+import { AccountingProvider } from './AccountingContext';
+import { TeamProvider } from './TeamContext';
+import { ProposalsProvider } from './ProposalsContext';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   return (
@@ -18,7 +21,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
               <CrewAvailabilityProvider>
                 <ClientPortalProvider>
                   <AssetsProvider>
-                    {children}
+                    <AccountingProvider>
+                      <TeamProvider>
+                        <ProposalsProvider>
+                          {children}
+                        </ProposalsProvider>
+                      </TeamProvider>
+                    </AccountingProvider>
                   </AssetsProvider>
                 </ClientPortalProvider>
               </CrewAvailabilityProvider>

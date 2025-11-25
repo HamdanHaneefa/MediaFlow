@@ -1,6 +1,103 @@
 export type ContactRole = 'Client' | 'Vendor' | 'Freelancer' | 'Partner';
 export type ContactStatus = 'Active' | 'Inactive' | 'Prospect';
 
+// Team Management Types
+export type TeamRole = 'Owner' | 'Manager' | 'Producer' | 'Director' | 'Editor' | 'Camera Operator' | 'Audio Engineer' | 'Assistant' | 'Freelancer';
+export type TeamMemberStatus = 'Active' | 'Inactive' | 'On Leave' | 'Terminated';
+export type PermissionLevel = 'Full Access' | 'Limited Access' | 'View Only';
+
+export interface TeamMember {
+  id: string;
+  user_id?: string; // Reference to auth user if applicable
+  team_id?: string; // Reference to team if member belongs to a team
+  name: string;
+  email: string;
+  phone?: string;
+  avatar_url?: string;
+  role: TeamRole;
+  status: TeamMemberStatus;
+  permissions: {
+    can_manage_projects: boolean;
+    can_send_proposals: boolean;
+    can_approve_expenses: boolean;
+    can_manage_team: boolean;
+    can_view_financials: boolean;
+    can_manage_assets: boolean;
+    can_access_client_portal: boolean;
+  };
+  hourly_rate?: number;
+  emergency_contact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  skills: string[];
+  bio?: string;
+  hire_date: string;
+  assigned_projects: string[];
+  performance_metrics?: {
+    tasks_completed: number;
+    projects_managed: number;
+    proposals_sent: number;
+    expenses_entered: number;
+    avg_task_completion_time: number;
+    client_satisfaction_rating: number;
+  };
+  invitation_status?: 'Pending' | 'Accepted' | 'Declined';
+  invited_at?: string;
+  invited_by?: string;
+  last_active?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeamInvitation {
+  id: string;
+  email: string;
+  role: TeamRole;
+  permissions: TeamMember['permissions'];
+  invited_by: string;
+  invitation_token: string;
+  expires_at: string;
+  status: 'Pending' | 'Accepted' | 'Declined' | 'Expired';
+  message?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectAssignment {
+  id: string;
+  project_id: string;
+  team_member_id: string;
+  role_in_project: string;
+  assigned_at: string;
+  assigned_by: string;
+  is_lead: boolean;
+  responsibilities: string[];
+  hourly_rate_override?: number;
+}
+
+// Team Group Types
+export interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  manager_id: string;
+  member_ids: string[];
+  project_ids: string[];
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeamProjectAssignment {
+  id: string;
+  team_id: string;
+  project_id: string;
+  assigned_at: string;
+  assigned_by: string;
+}
+
 export interface Contact {
   id: string;
   name: string;
@@ -398,4 +495,201 @@ export interface DataSyncQueue {
   error_message?: string;
   synced_at?: string;
   created_at: string;
+}
+
+// Accounting Types
+export type ExpenseCategory = 
+  | 'Equipment Rental'
+  | 'Location'
+  | 'Travel'
+  | 'Catering'
+  | 'Crew'
+  | 'Post Production'
+  | 'Marketing'
+  | 'Office Supplies'
+  | 'Utilities'
+  | 'Insurance'
+  | 'Legal'
+  | 'Other';
+
+export type ExpenseStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Paid' | 'Reimbursed';
+
+export interface Expense {
+  id: string;
+  project_id?: string;
+  title: string;
+  description?: string;
+  amount: number;
+  category: ExpenseCategory;
+  expense_date: string;
+  receipt_url?: string;
+  receipt_filename?: string;
+  vendor?: string;
+  status: ExpenseStatus;
+  submitted_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type IncomeType = 'Project Payment' | 'Deposit' | 'Final Payment' | 'Additional Services' | 'Other';
+export type IncomeStatus = 'Expected' | 'Received' | 'Overdue' | 'Cancelled';
+
+export interface Income {
+  id: string;
+  project_id?: string;
+  title: string;
+  description?: string;
+  amount: number;
+  income_type: IncomeType;
+  expected_date?: string;
+  received_date?: string;
+  status: IncomeStatus;
+  invoice_number?: string;
+  client_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TransactionType = 'Income' | 'Expense' | 'Transfer';
+export type TransactionStatus = 'Pending' | 'Reconciled' | 'Failed';
+
+export interface FinancialTransaction {
+  id: string;
+  project_id?: string;
+  type: TransactionType;
+  income_id?: string;
+  expense_id?: string;
+  amount: number;
+  description: string;
+  transaction_date: string;
+  status: TransactionStatus;
+  reference_number?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExpenseApprovalRule {
+  id: string;
+  category?: ExpenseCategory;
+  amount_threshold?: number;
+  approver_id: string;
+  require_receipt: boolean;
+  auto_approve: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectFinancialSummary {
+  project_id: string;
+  total_income: number;
+  total_expenses: number;
+  net_profit: number;
+  pending_expenses: number;
+  pending_income: number;
+  expense_by_category: Record<ExpenseCategory, number>;
+}
+
+// Lead Types
+export type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Proposal Sent' | 'Negotiating' | 'Won' | 'Lost' | 'Converted';
+export type LeadSource = 'Website' | 'Referral' | 'Cold Outreach' | 'Social Media' | 'Event' | 'Partner' | 'Other';
+export type LeadPriority = 'Low' | 'Medium' | 'High' | 'Hot';
+
+export interface Lead {
+  id: string;
+  name: string;
+  company?: string;
+  email: string;
+  phone?: string;
+  status: LeadStatus;
+  source: LeadSource;
+  priority: LeadPriority;
+  estimated_value?: number;
+  estimated_close_date?: string;
+  notes?: string;
+  tags: string[];
+  assigned_to?: string;
+  contact_date?: string;
+  follow_up_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Proposal Types
+export type ProposalStatus = 'Draft' | 'Sent' | 'Viewed' | 'Accepted' | 'Rejected' | 'Expired' | 'Cancelled';
+export type ProposalType = 'Standard' | 'Custom' | 'Quick Quote' | 'Retainer' | 'Package Deal';
+
+export interface Proposal {
+  id: string;
+  title: string;
+  description?: string;
+  proposal_number: string;
+  status: ProposalStatus;
+  type: ProposalType;
+  lead_id?: string;
+  project_id?: string;
+  client_id?: string;
+  amount: number;
+  currency: string;
+  valid_until?: string;
+  sent_date?: string;
+  viewed_date?: string;
+  accepted_date?: string;
+  rejected_date?: string;
+  rejection_reason?: string;
+  terms?: string;
+  notes?: string;
+  created_by?: string;
+  assigned_team_members: string[];
+  document_url?: string;
+  version: number;
+  parent_proposal_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProposalItem {
+  id: string;
+  proposal_id: string;
+  name: string;
+  description?: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ProposalRevision {
+  id: string;
+  proposal_id: string;
+  version: number;
+  changes_summary: string;
+  created_by?: string;
+  document_url?: string;
+  created_at: string;
+}
+
+export type ProposalActivityType = 'Created' | 'Sent' | 'Viewed' | 'Accepted' | 'Rejected' | 'Revised' | 'Expired' | 'Cancelled';
+
+export interface ProposalActivity {
+  id: string;
+  proposal_id: string;
+  activity_type: ProposalActivityType;
+  description: string;
+  performed_by?: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ProposalSignature {
+  id: string;
+  proposal_id: string;
+  signer_name: string;
+  signer_email: string;
+  signature_data: string;
+  signed_at: string;
+  ip_address?: string;
 }

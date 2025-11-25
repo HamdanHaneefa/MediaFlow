@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Clapperboard, Calendar, BarChart3, Video, CheckSquare, FolderOpen, Plug } from 'lucide-react';
+import { LayoutDashboard, Users, Clapperboard, Calendar, BarChart3, Video, CheckSquare, FolderOpen, Plug, DollarSign, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -9,10 +9,13 @@ import {
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/contacts', icon: Users, label: 'Contacts' },
+  { to: '/team', icon: Users, label: 'Team' },
   { to: '/projects', icon: Clapperboard, label: 'Projects' },
+  { to: '/proposals', icon: FileText, label: 'Leads & Proposals' },
   { to: '/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/assets', icon: FolderOpen, label: 'Assets' },
-  { to: '/integrations', icon: Plug, label: 'Integrations' },
+  { to: '/accounting', icon: DollarSign, label: 'Accounting' },
+  // { to: '/integrations', icon: Plug, label: 'Integrations' },
   { to: '/approvals', icon: CheckSquare, label: 'Approvals' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
 ];

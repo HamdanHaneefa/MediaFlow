@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, X, CheckSquare, Briefcase, Users, Calendar, Upload } from 'lucide-react';
+import { Plus, X, CheckSquare, Briefcase, Users, Calendar, Upload, FileText } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
 const quickActions = [
   { icon: CheckSquare, label: 'New Task', color: 'bg-green-600 hover:bg-green-700' },
   { icon: Briefcase, label: 'New Project', color: 'bg-blue-600 hover:bg-blue-700' },
+  { icon: FileText, label: 'New Proposal', color: 'bg-indigo-600 hover:bg-indigo-700' },
   { icon: Users, label: 'Add Contact', color: 'bg-purple-600 hover:bg-purple-700' },
   { icon: Calendar, label: 'New Event', color: 'bg-orange-600 hover:bg-orange-700' },
   { icon: Upload, label: 'Upload Asset', color: 'bg-pink-600 hover:bg-pink-700' },

@@ -112,7 +112,57 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchProjects();
+    // For demo purposes, add some mock projects
+    const mockProjects: Project[] = [
+      {
+        id: 'proj-1',
+        title: 'Nike Commercial Campaign',
+        description: 'High-energy commercial for Nike\'s new athletic line',
+        type: 'Commercial',
+        status: 'Active',
+        phase: 'Production',
+        client_id: 'client-1',
+        budget: 50000,
+        start_date: '2024-11-01',
+        end_date: '2024-12-15',
+        team_members: ['1', '2', '4'],
+        created_at: '2024-11-01T00:00:00Z',
+        updated_at: '2024-11-25T00:00:00Z',
+      },
+      {
+        id: 'proj-2',
+        title: 'Tech Startup Documentary',
+        description: 'Behind-the-scenes documentary about a growing tech startup',
+        type: 'Documentary',
+        status: 'Active',
+        phase: 'Post-production',
+        client_id: 'client-2',
+        budget: 30000,
+        start_date: '2024-10-15',
+        end_date: '2024-12-01',
+        team_members: ['1', '3'],
+        created_at: '2024-10-15T00:00:00Z',
+        updated_at: '2024-11-20T00:00:00Z',
+      },
+      {
+        id: 'proj-3',
+        title: 'Music Video - Indie Artist',
+        description: 'Creative music video for an upcoming indie artist',
+        type: 'Music Video',
+        status: 'Active',
+        phase: 'Post-production',
+        client_id: 'client-3',
+        budget: 15000,
+        start_date: '2024-11-10',
+        end_date: '2024-11-30',
+        team_members: ['2', '3'],
+        created_at: '2024-11-10T00:00:00Z',
+        updated_at: '2024-11-22T00:00:00Z',
+      },
+    ];
+    
+    setProjects(mockProjects);
+    setLoading(false);
   }, []);
 
   return (
