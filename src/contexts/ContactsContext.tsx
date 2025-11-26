@@ -1,16 +1,23 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Contact } from '@/types';
+import { 
+  contactsAPI, 
+  type Contact, 
+  type CreateContactData,
+  type PaginatedResponse 
+} from '@/services/api';
 
 interface ContactsContextType {
   contacts: Contact[];
   loading: boolean;
   error: string | null;
-  fetchContacts: () => Promise<void>;
-  createContact: (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => Promise<Contact | null>;
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+  fetchContacts: (page?: number, limit?: number) => Promise<void>;
+  searchContacts: (query: string) => Promise<void>;
+  createContact: (contact: CreateContactData) => Promise<Contact | null>;
   updateContact: (id: string, updates: Partial<Contact>) => Promise<Contact | null>;
   deleteContact: (id: string) => Promise<boolean>;
   getContactById: (id: string) => Contact | undefined;
+  exportContacts: () => Promise<void>;
 }
 
 const ContactsContext = createContext<ContactsContextType | undefined>(undefined);
@@ -19,18 +26,20 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       setError(null);
-      const { data, error: fetchError } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (fetchError) throw fetchError;
-      setContacts(data || []);
+      const response = await contactsAPI.getAll({ page, limit });
+      setContacts(response.items);
+      setPagination(response.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch contacts');
       console.error('Error fetching contacts:', err);
@@ -39,23 +48,29 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const searchContacts = async (query: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await contactsAPI.search(query, { page: 1, limit: 50 });
+      setContacts(response.items);
+      setPagination(response.pagination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to search contacts');
+      console.error('Error searching contacts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const createContact = async (
-    contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>
+    contactData: CreateContactData
   ): Promise<Contact | null> => {
     try {
       setError(null);
-      const { data, error: createError } = await supabase
-        .from('contacts')
-        .insert([contact])
-        .select()
-        .single();
-
-      if (createError) throw createError;
-      if (data) {
-        setContacts((prev) => [data, ...prev]);
-        return data;
-      }
-      return null;
+      const newContact = await contactsAPI.create(contactData);
+      setContacts((prev) => [newContact, ...prev]);
+      return newContact;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create contact');
       console.error('Error creating contact:', err);
@@ -69,19 +84,9 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
   ): Promise<Contact | null> => {
     try {
       setError(null);
-      const { data, error: updateError } = await supabase
-        .from('contacts')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-      if (data) {
-        setContacts((prev) => prev.map((c) => (c.id === id ? data : c)));
-        return data;
-      }
-      return null;
+      const updatedContact = await contactsAPI.update(id, updates);
+      setContacts((prev) => prev.map((c) => (c.id === id ? updatedContact : c)));
+      return updatedContact;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update contact');
       console.error('Error updating contact:', err);
@@ -92,12 +97,7 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
   const deleteContact = async (id: string): Promise<boolean> => {
     try {
       setError(null);
-      const { error: deleteError } = await supabase
-        .from('contacts')
-        .delete()
-        .eq('id', id);
-
-      if (deleteError) throw deleteError;
+      await contactsAPI.delete(id);
       setContacts((prev) => prev.filter((c) => c.id !== id));
       return true;
     } catch (err) {
@@ -111,6 +111,21 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     return contacts.find((c) => c.id === id);
   };
 
+  const exportContacts = async () => {
+    try {
+      const blob = await contactsAPI.exportCSV();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contacts-export-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export contacts');
+      console.error('Error exporting contacts:', err);
+    }
+  };
+
   useEffect(() => {
     fetchContacts();
   }, []);
@@ -121,11 +136,14 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
         contacts,
         loading,
         error,
+        pagination,
         fetchContacts,
+        searchContacts,
         createContact,
         updateContact,
         deleteContact,
         getContactById,
+        exportContacts,
       }}
     >
       {children}
