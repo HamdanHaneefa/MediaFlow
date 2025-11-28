@@ -49,6 +49,10 @@ interface AccountingContextType {
   // Financial Reporting
   getAccountingStats: () => Promise<AccountingStats | null>;
   getFinancialReport: (start_date: string, end_date: string) => Promise<FinancialReport | null>;
+  
+  // Helper functions
+  getExpensesByCategory: () => Record<string, number>;
+  getExpensesByProject: () => Record<string, number>;
 }
 
 const AccountingContext = createContext<AccountingContextType | undefined>(undefined);
@@ -338,6 +342,29 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     }
   }, []);
 
+  // Helper functions
+  const getExpensesByCategory = useCallback((): Record<string, number> => {
+    const categoryTotals: Record<string, number> = {};
+    
+    expenses.forEach(expense => {
+      const category = expense.category || 'Uncategorized';
+      categoryTotals[category] = (categoryTotals[category] || 0) + expense.amount;
+    });
+    
+    return categoryTotals;
+  }, [expenses]);
+
+  const getExpensesByProject = useCallback((): Record<string, number> => {
+    const projectTotals: Record<string, number> = {};
+    
+    expenses.forEach(expense => {
+      const projectId = expense.project_id || 'Unassigned';
+      projectTotals[projectId] = (projectTotals[projectId] || 0) + expense.amount;
+    });
+    
+    return projectTotals;
+  }, [expenses]);
+
   // Initialize data on mount
   useEffect(() => {
     fetchExpenses();
@@ -370,6 +397,8 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     downloadInvoicePDF,
     getAccountingStats,
     getFinancialReport,
+    getExpensesByCategory,
+    getExpensesByProject,
   };
 
   return (

@@ -38,6 +38,7 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       const response = await contactsAPI.getAll({ page, limit });
+      console.log('Resoponse form contact : ',response)
       setContacts(response.items);
       setPagination(response.pagination);
     } catch (err) {

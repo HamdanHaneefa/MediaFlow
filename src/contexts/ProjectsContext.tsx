@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   projectsAPI, 
-  type Project, 
+  type Project as APIProject, 
   type CreateProjectData,
   type UpdateProjectData,
   type ProjectStats
 } from '@/services/api';
+import { type Project } from '@/types';
 
 interface ProjectsContextType {
   projects: Project[];
@@ -27,6 +28,25 @@ interface ProjectsContextType {
 
 const ProjectsContext = createContext<ProjectsContextType | undefined>(undefined);
 
+// Transform API Project to Frontend Project type
+const transformProject = (apiProject: Record<string, any>): Project => {
+  return {
+    id: apiProject.id,
+    title: apiProject.title || apiProject.name || '', // Use title if available, fallback to name
+    description: apiProject.description,
+    type: apiProject.type || 'Commercial',
+    status: apiProject.status || 'Active',
+    phase: apiProject.phase || 'Pre-production',
+    client_id: apiProject.client_id || apiProject.contact_id,
+    budget: apiProject.budget,
+    start_date: apiProject.start_date,
+    end_date: apiProject.end_date,
+    team_members: apiProject.team_members || [],
+    created_at: apiProject.created_at,
+    updated_at: apiProject.updated_at,
+  };
+};
+
 export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +63,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       const response = await projectsAPI.getAll({ page, limit });
-      setProjects(response.items);
+      const transformedProjects = response.items.map(transformProject);
+      setProjects(transformedProjects);
       setPagination(response.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch projects');
@@ -58,7 +79,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       const response = await projectsAPI.search(query, { page: 1, limit: 50 });
-      setProjects(response.items);
+      const transformedProjects = response.items.map(transformProject);
+      setProjects(transformedProjects);
       setPagination(response.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to search projects');
@@ -74,8 +96,9 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       const newProject = await projectsAPI.create(projectData);
-      setProjects((prev) => [newProject, ...prev]);
-      return newProject;
+      const transformedProject = transformProject(newProject);
+      setProjects((prev) => [transformedProject, ...prev]);
+      return transformedProject;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create project');
       console.error('Error creating project:', err);
@@ -90,8 +113,9 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       const updatedProject = await projectsAPI.update(id, updates);
-      setProjects((prev) => prev.map((p) => (p.id === id ? updatedProject : p)));
-      return updatedProject;
+      const transformedProject = transformProject(updatedProject);
+      setProjects((prev) => prev.map((p) => (p.id === id ? transformedProject : p)));
+      return transformedProject;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update project');
       console.error('Error updating project:', err);
@@ -119,8 +143,9 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       const updatedProject = await projectsAPI.updateStatus(id, status);
-      setProjects((prev) => prev.map((p) => (p.id === id ? updatedProject : p)));
-      return updatedProject;
+      const transformedProject = transformProject(updatedProject);
+      setProjects((prev) => prev.map((p) => (p.id === id ? transformedProject : p)));
+      return transformedProject;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update project status');
       console.error('Error updating project status:', err);
@@ -155,8 +180,9 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const updateBudget = async (projectId: string, budget: number, spent: number) => {
     try {
       setError(null);
-      const updatedProject = await projectsAPI.updateBudget(projectId, { budget, spent });
-      setProjects((prev) => prev.map((p) => (p.id === projectId ? updatedProject : p)));
+      const updatedProject = await projectsAPI.updateBudget(projectId, { budget, actual_cost: spent });
+      const transformedProject = transformProject(updatedProject);
+      setProjects((prev) => prev.map((p) => (p.id === projectId ? transformedProject : p)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update budget');
       console.error('Error updating budget:', err);

@@ -25,15 +25,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('admin_access_token');
+        
+        console.log('🔍 Auth Check - Token found:', !!token);
+        
         if (token) {
-          const currentUser = await authAPI.getCurrentUser();
-          setUser(currentUser);
+          try {
+            const currentUser = await authAPI.getCurrentUser();
+            console.log('✅ User authenticated:', currentUser);
+            setUser(currentUser);
+          } catch (apiError: any) {
+            console.error('❌ getCurrentUser failed:', apiError);
+            
+            // Only clear tokens if it's an authentication error (401)
+            if (apiError.response?.status === 401) {
+              console.log('🔴 Invalid token - clearing localStorage');
+              localStorage.removeItem('admin_access_token');
+              localStorage.removeItem('admin_refresh_token');
+              localStorage.removeItem('admin_user');
+            } else {
+              // Network error or server error - keep the token!
+              console.log('⚠️ API error but keeping token (might be network issue)');
+              
+              // Try to load user from localStorage as fallback
+              const storedUser = localStorage.getItem('admin_user');
+              if (storedUser) {
+                setUser(JSON.parse(storedUser));
+                console.log('📦 Loaded user from localStorage cache');
+              }
+            }
+          }
+        } else {
+          console.log('❌ No token found in localStorage');
         }
       } catch (err) {
-        console.error('Auth check failed:', err);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
+        console.error('❌ Auth check error:', err);
       } finally {
         setLoading(false);
       }
@@ -67,11 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const response = await authAPI.login(credentials);
       
-      // Store tokens
-      localStorage.setItem('auth_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      
-      // Set user
+      // auth.ts already stores tokens, just set user
       setUser(response.user);
       
       return true;
@@ -92,11 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const response = await authAPI.register(data);
       
-      // Store tokens
-      localStorage.setItem('auth_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      
-      // Set user
+      // auth.ts already stores tokens, just set user
       setUser(response.user);
       
       return true;
@@ -117,8 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', err);
     } finally {
       // Clear local state regardless of API call success
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
+      // auth.ts handles localStorage cleanup
       setUser(null);
       setError(null);
     }
@@ -126,14 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshToken = async (): Promise<boolean> => {
     try {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem('admin_refresh_token');
       if (!refreshToken) return false;
 
       const response = await authAPI.refresh(refreshToken);
       
-      // Update tokens
-      localStorage.setItem('auth_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
+      // auth.ts interceptor already updates tokens
       
       // Update user if provided
       if (response.user) {

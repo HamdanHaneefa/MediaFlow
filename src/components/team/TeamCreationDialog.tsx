@@ -29,8 +29,8 @@ interface TeamCreationDialogProps {
 }
 
 export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
-  const { state, createTeam } = useTeam();
   const { projects } = useProjects();
+  const { teamMembers, createTeam } = useTeam();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -40,12 +40,17 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
-  const managers = state.teamMembers.filter(
-    member => member.permissions.can_manage_team && member.status === 'Active'
+  const managers = teamMembers.filter(
+    member => member.permissions?.can_manage_team && member.status === 'active'
   );
 
-  const availableMembers = state.teamMembers.filter(
-    member => member.status === 'Active'
+  // If no managers are found, fall back to all active members
+  const availableManagers = managers.length > 0 ? managers : teamMembers.filter(
+    member => member.status === 'active'
+  );
+
+  const availableMembers = teamMembers.filter(
+    member => member.status === 'active'
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,6 +93,7 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
   };
 
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return '??';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
@@ -140,16 +146,16 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
                   <SelectValue placeholder="Select team manager" />
                 </SelectTrigger>
                 <SelectContent>
-                  {managers.map((manager) => (
+                  {availableManagers.map((manager) => (
                     <SelectItem key={manager.id} value={manager.id}>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={manager.avatar_url} alt={manager.name} />
+                          <AvatarImage src={manager.avatar_url} alt={manager.name || 'Manager'} />
                           <AvatarFallback className="text-xs">
-                            {getInitials(manager.name)}
+                            {getInitials(manager.name || 'Unknown Manager')}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{manager.name}</span>
+                        <span>{manager.name || 'Unknown Manager'}</span>
                         <Badge variant="outline" className="ml-auto">
                           {manager.role}
                         </Badge>
@@ -176,14 +182,14 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
                   >
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar_url} alt={member.name} />
+                        <AvatarImage src={member.avatar_url} alt={member.name || 'Member'} />
                         <AvatarFallback className="text-xs">
-                          {getInitials(member.name)}
+                          {getInitials(member.name || 'Unknown Member')}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium text-sm">{member.name}</div>
-                        <div className="text-xs text-gray-500">{member.role}</div>
+                        <div className="font-medium text-sm">{member.name || 'Unknown Member'}</div>
+                        <div className="text-xs text-gray-500">{member.role || 'No Role'}</div>
                       </div>
                     </div>
                     <Button

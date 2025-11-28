@@ -26,6 +26,7 @@ export function Projects() {
   // In a real app, this would come from authentication context
   const currentUserId = '1';
   const { accessibleProjects } = useTeamProjects(currentUserId);
+  console.log('Projects :', accessibleProjects);
   
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [dialogOpen, setDialogOpen] = useState(false);

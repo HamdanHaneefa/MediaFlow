@@ -1,20 +1,23 @@
 import { useState } from 'react';
-import { useEvents } from '@/contexts/EventsContext';
+// import { useEvents } from '@/contexts/EventsContext';
 import { useProjects } from '@/contexts/ProjectsContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Calendar, List, Clock } from 'lucide-react';
+import { Plus, Calendar, List, Clock, AlertCircle } from 'lucide-react';
 import { MonthlyCalendarView } from '@/components/calendar/MonthlyCalendarView';
 import { WeeklyScheduleView } from '@/components/calendar/WeeklyScheduleView';
 import { TimelineView } from '@/components/calendar/TimelineView';
 import { EventDialogEnhanced } from '@/components/calendar/EventDialogEnhanced';
 import { Event } from '@/types';
 import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type ViewMode = 'month' | 'week' | 'timeline';
 
 export function CalendarPage() {
-  const { events, loading } = useEvents();
+  // const { events, loading } = useEvents(); // Temporarily disabled - uses Supabase
+  const events: Event[] = []; // Temporary empty array
+  const loading = false;
   const { projects } = useProjects();
   const navigate = useNavigate();
 
@@ -82,6 +85,20 @@ export function CalendarPage() {
 
   return (
     <div className="space-y-6">
+      {/* Notice Banner */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium text-yellow-900">Calendar Feature Under Development</h3>
+            <p className="text-sm text-yellow-700 mt-1">
+              The calendar feature is currently being migrated from Supabase to the backend API. 
+              This page will be fully functional once the events API endpoint is implemented.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Calendar</h2>

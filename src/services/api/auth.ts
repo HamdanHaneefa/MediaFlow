@@ -39,15 +39,17 @@ apiClient.interceptors.response.use(
         const refreshToken = localStorage.getItem('admin_refresh_token');
         if (refreshToken) {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refresh_token: refreshToken,
+            refreshToken: refreshToken,
           });
 
-          const { access_token, refresh_token: newRefreshToken } = response.data.data;
+          // Backend returns { accessToken, refreshToken } in camelCase
+          const responseData = response.data.data || response.data;
+          const { accessToken, refreshToken: newRefreshToken } = responseData;
           
-          localStorage.setItem('admin_access_token', access_token);
+          localStorage.setItem('admin_access_token', accessToken);
           localStorage.setItem('admin_refresh_token', newRefreshToken);
 
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
@@ -115,25 +117,57 @@ export const authAPI = {
   // Register new admin user
   register: async (data: RegisterData): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/register', data);
-    const { access_token, refresh_token, user } = response.data.data;
     
-    localStorage.setItem('admin_access_token', access_token);
-    localStorage.setItem('admin_refresh_token', refresh_token);
+    console.log('Register Response:', response);
+    console.log('Register Data:', response.data);
+    
+    // Backend returns { success, data: { accessToken, refreshToken, user }, message }
+    const responseData = response.data.data || response.data;
+    const { accessToken, refreshToken, user } = responseData;
+    
+    if (!accessToken || !refreshToken) {
+      throw new Error('Invalid response: missing tokens');
+    }
+    
+    localStorage.setItem('admin_access_token', accessToken);
+    localStorage.setItem('admin_refresh_token', refreshToken);
     localStorage.setItem('admin_user', JSON.stringify(user));
     
-    return response.data.data;
+    return {
+      user,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   },
 
   // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/login', credentials);
-    const { access_token, refresh_token, user } = response.data.data;
     
-    localStorage.setItem('admin_access_token', access_token);
-    localStorage.setItem('admin_refresh_token', refresh_token);
+    console.log('Full Backend Response:', response);
+    console.log('Response Data:', response.data);
+    
+    // Backend returns { success, data: { accessToken, refreshToken, user }, message }
+    const responseData = response.data.data || response.data;
+    const { accessToken, refreshToken, user } = responseData;
+    
+    console.log('Extracted Values:', { accessToken, refreshToken, user });
+    
+    if (!accessToken || !refreshToken) {
+      throw new Error('Invalid response: missing tokens');
+    }
+    
+    localStorage.setItem('admin_access_token', accessToken);
+    localStorage.setItem('admin_refresh_token', refreshToken);
     localStorage.setItem('admin_user', JSON.stringify(user));
     
-    return response.data.data;
+    console.log('Tokens stored in localStorage');
+    
+    return {
+      user,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   },
 
   // Logout
@@ -150,9 +184,17 @@ export const authAPI = {
   // Refresh token
   refresh: async (refreshToken: string): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/refresh', {
-      refresh_token: refreshToken,
+      refreshToken: refreshToken,
     });
-    return response.data.data;
+    
+    const responseData = response.data.data || response.data;
+    const { accessToken, refreshToken: newRefreshToken, user } = responseData;
+    
+    return {
+      user,
+      access_token: accessToken,
+      refresh_token: newRefreshToken,
+    };
   },
 
   // Forgot password

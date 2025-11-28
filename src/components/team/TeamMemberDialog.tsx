@@ -39,10 +39,10 @@ const teamRoles: TeamRole[] = [
 const statusOptions: TeamMemberStatus[] = ['Active', 'Inactive', 'On Leave', 'Terminated'];
 
 export function TeamMemberDialog({ open, onClose, editingMemberId }: TeamMemberDialogProps) {
-  const { state, addTeamMember, updateTeamMember } = useTeam();
+  const { teamMembers, createTeamMember, updateTeamMember, getTeamMemberById } = useTeam();
   
   const editingMember = editingMemberId 
-    ? state.teamMembers.find(m => m.id === editingMemberId)
+    ? getTeamMemberById(editingMemberId)
     : null;
 
   const [formData, setFormData] = useState({
@@ -75,18 +75,36 @@ export function TeamMemberDialog({ open, onClose, editingMemberId }: TeamMemberD
 
   useEffect(() => {
     if (editingMember) {
+      // Transform API format (first_name, last_name) to form format (name)
+      const fullName = `${editingMember.first_name || ''} ${editingMember.last_name || ''}`.trim();
+      
+      // Map API role (lowercase) to form role (TeamRole)
+      const apiRole = (editingMember as any).role as string;
+      let formRole: TeamRole = 'Assistant';
+      if (apiRole === 'admin') formRole = 'Owner';
+      else if (apiRole === 'manager') formRole = 'Manager';
+      else formRole = 'Assistant';
+      
       setFormData({
-        name: editingMember.name,
+        name: fullName,
         email: editingMember.email,
         phone: editingMember.phone || '',
-        avatar_url: editingMember.avatar_url || '',
-        role: editingMember.role,
-        status: editingMember.status,
-        hourly_rate: editingMember.hourly_rate?.toString() || '',
+        avatar_url: editingMember.avatar || '',
+        role: formRole,
+        status: editingMember.status === 'active' ? 'Active' : 'Inactive',
+        hourly_rate: '',
         bio: editingMember.bio || '',
-        skills: editingMember.skills || [],
-        permissions: editingMember.permissions,
-        emergency_contact: editingMember.emergency_contact || {
+        skills: [],
+        permissions: {
+          can_manage_projects: false,
+          can_send_proposals: false,
+          can_approve_expenses: false,
+          can_manage_team: false,
+          can_view_financials: false,
+          can_manage_assets: false,
+          can_access_client_portal: false,
+        },
+        emergency_contact: {
           name: '',
           phone: '',
           relationship: '',
@@ -122,31 +140,50 @@ export function TeamMemberDialog({ open, onClose, editingMemberId }: TeamMemberD
     }
   }, [editingMember, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const memberData = {
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone || undefined,
-      avatar_url: formData.avatar_url || undefined,
-      role: formData.role,
-      status: formData.status,
-      hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : undefined,
-      bio: formData.bio || undefined,
-      skills: formData.skills,
-      permissions: formData.permissions,
-      emergency_contact: formData.emergency_contact.name ? formData.emergency_contact : undefined,
-      hire_date: editingMember?.hire_date || new Date().toISOString(),
-      assigned_projects: editingMember?.assigned_projects || [],
-      performance_metrics: editingMember?.performance_metrics,
-    };
-
-    if (editingMember) {
-      updateTeamMember(editingMember.id, memberData);
-    } else {
-      addTeamMember(memberData);
+    // Split name into first and last name
+    const nameParts = formData.name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || 'N/A'; // Default if no last name
+    
+    // Validate name
+    if (!firstName) {
+      alert('Please enter a name');
+      return;
     }
+    
+    if (editingMember) {
+      // For update, use UpdateUserData format
+      const updateData = {
+        first_name: firstName,
+        last_name: lastName,
+        phone: formData.phone || undefined,
+        bio: formData.bio || undefined,
+        // Map role from TeamRole to API role (lowercase)
+        role: formData.role === 'Owner' ? 'admin' 
+            : formData.role === 'Manager' ? 'manager' 
+            : 'member',
+        // Map status from form to API format (lowercase)
+        status: formData.status === 'Active' ? 'active' : 'inactive',
+      };
+      await updateTeamMember(editingMember.id, updateData);
+    } else {
+      // For create, use CreateUserData format
+      const createData = {
+        email: formData.email,
+        first_name: firstName,
+        last_name: lastName,
+        phone: formData.phone || undefined,
+        // Map role from TeamRole to API role (lowercase)
+        role: (formData.role === 'Owner' ? 'admin' 
+            : formData.role === 'Manager' ? 'manager' 
+            : 'member') as 'admin' | 'manager' | 'member',
+      };
+      await createTeamMember(createData);
+    }
+
 
     onClose();
   };

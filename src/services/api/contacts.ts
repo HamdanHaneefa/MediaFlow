@@ -99,7 +99,6 @@ export const contactsAPI = {
     if (params?.type) queryParams.append('type', params.type);
     if (params?.status) queryParams.append('status', params.status);
     if (params?.assigned_to) queryParams.append('assigned_to', params.assigned_to);
-
     const response = await adminApiClient.get(`/contacts?${queryParams.toString()}`);
     return response.data.data;
   },

@@ -27,8 +27,8 @@ import { TeamMember } from '@/types';
 import { Plus, Users, DollarSign, X } from 'lucide-react';
 
 export function TeamAssignmentView() {
-  const { state, assignToProject, removeFromProject } = useTeam();
-  const { projects } = useProjects();
+  const { teamMembers = [], projectAssignments = [], assignToProject, removeFromProject } = useTeam();
+  const { projects = [] } = useProjects();
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string>('');
   
@@ -43,6 +43,7 @@ export function TeamAssignmentView() {
   const [newResponsibility, setNewResponsibility] = useState('');
 
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return '??';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
@@ -94,11 +95,13 @@ export function TeamAssignmentView() {
   };
 
   const getTeamMembersByProject = (projectId: string) => {
-    const assignments = state.projectAssignments.filter(a => a.project_id === projectId);
+    if (!projectAssignments || !teamMembers) return [];
+    
+    const assignments = projectAssignments.filter(a => a.project_id === projectId);
     return assignments.map(assignment => {
-      const member = state.teamMembers.find(m => m.id === assignment.team_member_id);
+      const member = teamMembers.find(m => m.id === assignment.team_member_id);
       return member ? { ...member, assignment } : null;
-    }).filter(Boolean) as (TeamMember & { assignment: typeof state.projectAssignments[0] })[];
+    }).filter(Boolean) as (TeamMember & { assignment: typeof projectAssignments[0] })[];
   };
 
   return (
@@ -159,14 +162,14 @@ export function TeamAssignmentView() {
                         >
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={member.avatar_url} alt={member.name} />
+                              <AvatarImage src={member.avatar_url} alt={member.name || 'Member'} />
                               <AvatarFallback className="text-xs">
-                                {getInitials(member.name)}
+                                {getInitials(member.name || 'Unknown Member')}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{member.name}</span>
+                                <span className="text-sm font-medium">{member.name || 'Unknown Member'}</span>
                                 {assignment.is_lead && (
                                   <Badge variant="outline" className="text-xs">Lead</Badge>
                                 )}
@@ -251,20 +254,20 @@ export function TeamAssignmentView() {
                   <SelectValue placeholder="Select a team member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {state.teamMembers
-                    .filter(member => member.status === 'Active')
+                  {teamMembers
+                    .filter(member => member.status === 'active')
                     .map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-6 w-6">
-                            <AvatarImage src={member.avatar_url} alt={member.name} />
+                            <AvatarImage src={member.avatar_url} alt={member.name || 'Member'} />
                             <AvatarFallback className="text-xs">
-                              {getInitials(member.name)}
+                              {getInitials(member.name || 'Unknown Member')}
                             </AvatarFallback>
                           </Avatar>
-                          <span>{member.name}</span>
+                          <span>{member.name || 'Unknown Member'}</span>
                           <Badge variant="outline" className="ml-auto">
-                            {member.role}
+                            {member.role || 'No Role'}
                           </Badge>
                         </div>
                       </SelectItem>

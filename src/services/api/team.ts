@@ -7,7 +7,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'Admin' | 'Manager' | 'Member';
+  role: 'admin' | 'manager' | 'member' | 'viewer';
   position?: string;
   department?: string;
   phone?: string;
@@ -35,10 +35,9 @@ export interface Permission {
 
 export interface CreateUserData {
   email: string;
-  password: string;
   first_name: string;
   last_name: string;
-  role: 'Admin' | 'Manager' | 'Member';
+  role: 'admin' | 'manager' | 'member' | 'viewer';
   position?: string;
   department?: string;
   phone?: string;
@@ -47,7 +46,7 @@ export interface CreateUserData {
 export interface UpdateUserData {
   first_name?: string;
   last_name?: string;
-  role?: 'Admin' | 'Manager' | 'Member';
+  role?: 'admin' | 'manager' | 'member' | 'viewer';
   position?: string;
   department?: string;
   phone?: string;
@@ -107,31 +106,31 @@ export const teamAPI = {
     if (params?.department) queryParams.append('department', params.department);
     if (params?.is_active !== undefined) queryParams.append('is_active', params.is_active.toString());
 
-    const response = await adminApiClient.get(`/team?${queryParams.toString()}`);
+    const response = await adminApiClient.get(`/team/members?${queryParams.toString()}`);
     return response.data.data;
   },
 
   // Create team member
   create: async (data: CreateUserData): Promise<User> => {
-    const response = await adminApiClient.post('/team', data);
+    const response = await adminApiClient.post('/team/members', data);
     return response.data.data;
   },
 
   // Get team member by ID
   getById: async (id: string): Promise<TeamMember> => {
-    const response = await adminApiClient.get(`/team/${id}`);
+    const response = await adminApiClient.get(`/team/members/${id}`);
     return response.data.data;
   },
 
   // Update team member
   update: async (id: string, data: UpdateUserData): Promise<User> => {
-    const response = await adminApiClient.put(`/team/${id}`, data);
+    const response = await adminApiClient.put(`/team/members/${id}`, data);
     return response.data.data;
   },
 
   // Delete team member
   delete: async (id: string): Promise<void> => {
-    await adminApiClient.delete(`/team/${id}`);
+    await adminApiClient.delete(`/team/members/${id}`);
   },
 
   // Update avatar
@@ -139,7 +138,7 @@ export const teamAPI = {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    const response = await adminApiClient.post(`/team/${userId}/avatar`, formData, {
+    const response = await adminApiClient.post(`/team/members/${userId}/avatar`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -149,18 +148,18 @@ export const teamAPI = {
 
   // Update password
   updatePassword: async (userId: string, data: UpdatePasswordData): Promise<void> => {
-    await adminApiClient.put(`/team/${userId}/password`, data);
+    await adminApiClient.put(`/team/members/${userId}/password`, data);
   },
 
   // Get user permissions
   getPermissions: async (userId: string): Promise<Permission[]> => {
-    const response = await adminApiClient.get(`/team/${userId}/permissions`);
+    const response = await adminApiClient.get(`/team/members/${userId}/permissions`);
     return response.data.data;
   },
 
   // Set user permissions
   setPermissions: async (userId: string, permissions: SetPermissionsData[]): Promise<Permission[]> => {
-    const response = await adminApiClient.post(`/team/${userId}/permissions`, { permissions });
+    const response = await adminApiClient.post(`/team/members/${userId}/permissions`, { permissions });
     return response.data.data;
   },
 
@@ -177,7 +176,7 @@ export const teamAPI = {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-    const response = await adminApiClient.get(`/team/search?${queryParams.toString()}`);
+    const response = await adminApiClient.get(`/team/members/search?${queryParams.toString()}`);
     return response.data.data;
   },
 
@@ -188,7 +187,7 @@ export const teamAPI = {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-    const response = await adminApiClient.get(`/team?${queryParams.toString()}`);
+    const response = await adminApiClient.get(`/team/members?${queryParams.toString()}`);
     return response.data.data;
   },
 };

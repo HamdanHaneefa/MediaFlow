@@ -68,11 +68,22 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (member: any) => {
+    // Handle API format (first_name, last_name) or legacy format (name)
+    const name = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
+  };
+
+  const getFullName = (member: any) => {
+    // Handle API format (first_name, last_name) or legacy format (name)
+    return member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
   };
 
   const getPermissionLevel = (member: TeamMember): string => {
+    if (!member.permissions || typeof member.permissions !== 'object') {
+      return 'View Only';
+    }
+    
     const permissions = member.permissions;
     const trueCount = Object.values(permissions).filter(Boolean).length;
     
@@ -93,12 +104,12 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={member.avatar_url} alt={member.name} />
-                      <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                      <AvatarImage src={member.avatar_url || (member as any).avatar || undefined} alt={getFullName(member)} />
+                      <AvatarFallback>{getInitials(member)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-gray-900 truncate">
-                        {member.name}
+                        {getFullName(member)}
                       </h4>
                       <p className="text-sm text-gray-500 truncate">{member.email}</p>
                       {member.last_active && (
@@ -135,14 +146,14 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">Role</span>
-                    <Badge variant="secondary" className={roleColors[member.role] || 'bg-gray-100 text-gray-800'}>
+                    <Badge variant="secondary" className={roleColors[member.role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'}>
                       {member.role}
                     </Badge>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">Status</span>
-                    <Badge variant="secondary" className={statusColors[member.status]}>
+                    <Badge variant="secondary" className={statusColors[member.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
                       {member.status}
                     </Badge>
                   </div>
@@ -164,7 +175,7 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">Projects</span>
-                    <span className="text-sm font-medium">{member.assigned_projects.length}</span>
+                    <span className="text-sm font-medium">{member.assigned_projects?.length || 0}</span>
                   </div>
                 </div>
 

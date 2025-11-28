@@ -26,12 +26,15 @@ import { useProjects } from '@/contexts/ProjectsContext';
 import { TeamCreationDialog } from './TeamCreationDialog';
 
 export function TeamsManagementView() {
-  const { state, deleteTeam } = useTeam();
+  const { teamMembers } = useTeam();
   const { projects } = useProjects();
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<string | null>(null);
+
+  // Placeholder: Teams feature not yet implemented in backend
+  const teams: any[] = [];
 
   const handleDeleteTeam = (teamId: string) => {
     setTeamToDelete(teamId);
@@ -40,14 +43,21 @@ export function TeamsManagementView() {
 
   const confirmDelete = () => {
     if (teamToDelete) {
-      deleteTeam(teamToDelete);
+      // deleteTeam(teamToDelete); // TODO: Implement when backend ready
       setDeleteDialogOpen(false);
       setTeamToDelete(null);
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (member: any) => {
+    // Handle API format (first_name, last_name) or legacy format (name)
+    const name = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
+  };
+
+  const getFullName = (member: any) => {
+    // Handle API format (first_name, last_name) or legacy format (name)
+    return member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
   };
 
   const getProjectName = (projectId: string) => {
@@ -94,9 +104,9 @@ export function TeamsManagementView() {
 
       {/* Teams Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {state.teams.map((team) => {
-          const manager = state.teamMembers.find(member => member.id === team.manager_id);
-          const teamMembers = state.teamMembers.filter(member => 
+        {teams.map((team) => {
+          const manager = teamMembers.find(member => member.id === team.manager_id);
+          const teamMembersFiltered = teamMembers.filter(member => 
             team.member_ids.includes(member.id)
           );
 
@@ -146,12 +156,12 @@ export function TeamsManagementView() {
                   {manager && (
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={manager.avatar_url} alt={manager.name} />
+                        <AvatarImage src={(manager as any).avatar_url || (manager as any).avatar} alt={getFullName(manager)} />
                         <AvatarFallback className="text-xs">
-                          {getInitials(manager.name)}
+                          {getInitials(manager)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium">{manager.name}</span>
+                      <span className="text-sm font-medium">{getFullName(manager)}</span>
                     </div>
                   )}
                 </div>
@@ -175,24 +185,24 @@ export function TeamsManagementView() {
                 </div>
 
                 {/* Team Members Preview */}
-                {teamMembers.length > 0 && (
+                {teamMembersFiltered.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-sm text-gray-500">Members</span>
                     <div className="flex flex-wrap gap-2">
-                      {teamMembers.slice(0, 3).map((member) => (
+                      {teamMembersFiltered.slice(0, 3).map((member) => (
                         <div key={member.id} className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1">
                           <Avatar className="h-4 w-4">
-                            <AvatarImage src={member.avatar_url} alt={member.name} />
+                            <AvatarImage src={(member as any).avatar_url || (member as any).avatar} alt={getFullName(member)} />
                             <AvatarFallback className="text-xs">
-                              {getInitials(member.name)}
+                              {getInitials(member)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs">{member.name.split(' ')[0]}</span>
+                          <span className="text-xs">{getFullName(member).split(' ')[0]}</span>
                         </div>
                       ))}
-                      {teamMembers.length > 3 && (
+                      {teamMembersFiltered.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{teamMembers.length - 3} more
+                          +{teamMembersFiltered.length - 3} more
                         </Badge>
                       )}
                     </div>
@@ -204,7 +214,7 @@ export function TeamsManagementView() {
                   <div className="space-y-2">
                     <span className="text-sm text-gray-500">Projects</span>
                     <div className="flex flex-wrap gap-1">
-                      {team.project_ids.slice(0, 2).map((projectId) => (
+                      {team.project_ids.slice(0, 2).map((projectId: string) => (
                         <Badge key={projectId} variant="outline" className="text-xs">
                           {getProjectName(projectId)}
                         </Badge>
@@ -235,7 +245,7 @@ export function TeamsManagementView() {
         })}
 
         {/* Empty State */}
-        {state.teams.length === 0 && (
+        {teams.length === 0 && (
           <Card className="col-span-full border-dashed border-2 border-gray-200">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-gray-400 mb-4" />

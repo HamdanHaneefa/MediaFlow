@@ -11,9 +11,10 @@ import { TeamAssignmentView } from '@/components/team/TeamAssignmentView';
 import { TeamDashboard } from '@/components/team/TeamDashboard';
 import { TeamSettings } from '@/components/team/TeamSettings';
 import { TeamsManagementView } from '@/components/team/TeamsManagementView';
+import type { TeamMember, TeamInvitation } from '@/types/team';
 
 export default function Team() {
-  const { state } = useTeam();
+  const { teamMembers } = useTeam();
   const [activeTab, setActiveTab] = useState('members');
   const [showMemberDialog, setShowMemberDialog] = useState(false);
   const [showInvitationDialog, setShowInvitationDialog] = useState(false);
@@ -29,9 +30,10 @@ export default function Team() {
     setEditingMember(null);
   };
 
-  const activeMembers = state.teamMembers.filter(member => member.status === 'Active');
-  const pendingInvitations = state.invitations.filter(inv => inv.status === 'Pending');
-  const activeTeams = state.teams.length;
+  const activeMembers = teamMembers.filter(member => member.status === 'active');
+  const pendingInvitations: unknown[] = []; // TODO: Add invitations to context
+  const activeTeams = 0; // TODO: Add teams to context
+  const projectAssignments: unknown[] = []; // TODO: Add project assignments to context
 
   return (
     <div className="space-y-6">
@@ -72,7 +74,7 @@ export default function Team() {
           <CardContent>
             <div className="text-2xl font-bold">{activeMembers.length}</div>
             <p className="text-xs text-muted-foreground">
-              +{state.teamMembers.filter(m => m.status === 'Active' && 
+              +{teamMembers.filter(m => m.status === 'active' && 
                 new Date(m.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length} this month
             </p>
           </CardContent>
@@ -110,7 +112,7 @@ export default function Team() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{state.projectAssignments.length}</div>
+            <div className="text-2xl font-bold">{projectAssignments.length}</div>
             <p className="text-xs text-muted-foreground">
               Active assignments
             </p>
@@ -142,9 +144,9 @@ export default function Team() {
             
             <TabsContent value="members" className="mt-6">
               <TeamMemberGrid
-                teamMembers={state.teamMembers}
+                teamMembers={teamMembers as unknown as TeamMember[]}
                 onEditMember={handleEditMember}
-                invitations={state.invitations}
+                invitations={pendingInvitations as unknown as TeamInvitation[]}
               />
             </TabsContent>
             

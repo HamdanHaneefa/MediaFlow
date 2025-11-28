@@ -23,16 +23,17 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 export function TeamDashboard() {
-  const { state } = useTeam();
-  const { projects } = useProjects();
+  const { teamMembers = [], projectAssignments = [] } = useTeam();
+  const { projects = [] } = useProjects();
   const [selectedPeriod, setSelectedPeriod] = useState('30');
 
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return '??';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   const getTeamPerformanceMetrics = () => {
-    const activeMembers = state.teamMembers.filter(m => m.status === 'Active');
+    const activeMembers = teamMembers.filter(m => m.status === 'active');
     
     const totalTasks = activeMembers.reduce((sum, member) => 
       sum + (member.performance_metrics?.tasks_completed || 0), 0
@@ -65,8 +66,8 @@ export function TeamDashboard() {
   };
 
   const getTopPerformers = () => {
-    return state.teamMembers
-      .filter(m => m.status === 'Active' && m.performance_metrics)
+    return teamMembers
+      .filter(m => m.status === 'active' && m.performance_metrics)
       .sort((a, b) => {
         const scoreA = (a.performance_metrics?.tasks_completed || 0) * 0.3 +
                       (a.performance_metrics?.client_satisfaction_rating || 0) * 0.4 +
@@ -82,7 +83,7 @@ export function TeamDashboard() {
   const getProjectDistribution = () => {
     const projectCounts: Record<string, number> = {};
     
-    state.projectAssignments.forEach(assignment => {
+    projectAssignments.forEach(assignment => {
       const project = projects.find((p) => p.id === assignment.project_id);
       if (project) {
         projectCounts[project.title] = (projectCounts[project.title] || 0) + 1;
@@ -105,14 +106,14 @@ export function TeamDashboard() {
     }> = [];
 
     // Simulate recent activities based on team data
-    state.teamMembers
-      .filter(m => m.last_active)
+    teamMembers
+      .filter(m => m.last_active && m.name)
       .sort((a, b) => new Date(b.last_active!).getTime() - new Date(a.last_active!).getTime())
       .slice(0, 10)
       .forEach(member => {
         activities.push({
           type: 'activity',
-          member: member.name,
+          member: member.name || 'Unknown User',
           description: 'was active in the system',
           timestamp: member.last_active!,
           avatar: member.avatar_url,
@@ -120,13 +121,13 @@ export function TeamDashboard() {
       });
 
     // Add recent assignments
-    state.projectAssignments
+    projectAssignments
       .sort((a, b) => new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime())
       .slice(0, 5)
       .forEach(assignment => {
-        const member = state.teamMembers.find(m => m.id === assignment.team_member_id);
+        const member = teamMembers.find(m => m.id === assignment.team_member_id);
         const project = projects.find((p) => p.id === assignment.project_id);
-        if (member && project) {
+        if (member && project && member.name) {
           activities.push({
             type: 'assignment',
             member: member.name,
@@ -241,23 +242,23 @@ export function TeamDashboard() {
                         #{index + 1}
                       </span>
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar_url} alt={member.name} />
+                        <AvatarImage src={member.avatar_url} alt={member.name || 'User'} />
                         <AvatarFallback className="text-xs">
-                          {getInitials(member.name)}
+                          {getInitials(member.name || 'Unknown User')}
                         </AvatarFallback>
                       </Avatar>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">{member.name}</div>
-                      <div className="text-xs text-gray-500">{member.role}</div>
+                      <div className="text-sm font-medium">{member.name || 'Unknown User'}</div>
+                      <div className="text-xs text-gray-500">{member.role || 'No Role'}</div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium">
-                      {member.performance_metrics?.client_satisfaction_rating.toFixed(1)} ⭐
+                      {member.performance_metrics?.client_satisfaction_rating?.toFixed(1) || '0.0'} ⭐
                     </div>
                     <div className="text-xs text-gray-500">
-                      {member.performance_metrics?.tasks_completed} tasks
+                      {member.performance_metrics?.tasks_completed || 0} tasks
                     </div>
                   </div>
                 </div>
@@ -311,11 +312,11 @@ export function TeamDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {state.teamMembers
-                .filter(m => m.status === 'Active')
+              {teamMembers
+                .filter(m => m.status === 'active' && m.name)
                 .slice(0, 6)
                 .map((member) => {
-                  const assignments = state.projectAssignments.filter(
+                  const assignments = projectAssignments.filter(
                     a => a.team_member_id === member.id
                   );
                   const utilizationPercentage = Math.min((assignments.length / 3) * 100, 100);
@@ -325,12 +326,12 @@ export function TeamDashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <Avatar className="h-6 w-6">
-                            <AvatarImage src={member.avatar_url} alt={member.name} />
+                            <AvatarImage src={member.avatar_url} alt={member.name || 'User'} />
                             <AvatarFallback className="text-xs">
-                              {getInitials(member.name)}
+                              {getInitials(member.name || 'Unknown User')}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm font-medium">{member.name}</span>
+                          <span className="text-sm font-medium">{member.name || 'Unknown User'}</span>
                         </div>
                         <span className="text-sm text-gray-500">
                           {assignments.length} project{assignments.length !== 1 ? 's' : ''}
