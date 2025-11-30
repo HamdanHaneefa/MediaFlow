@@ -1,4 +1,5 @@
-import { Event, Project } from '@/types';
+import { Event } from '@/services/api/events';
+import { Project } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -146,7 +147,7 @@ export function TimelineView({ projects, events, onEventClick, onProjectClick }:
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-lg">{eventTypeIcons[event.event_type]}</span>
+                                  <span className="text-lg">{eventTypeIcons[event.event_type as keyof typeof eventTypeIcons] || '📅'}</span>
                                   <h4 className="font-medium text-slate-900">{event.title}</h4>
                                   <Badge
                                     variant="outline"

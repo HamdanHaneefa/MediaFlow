@@ -9,7 +9,7 @@ export interface Task {
   project_id: string;
   assigned_to?: string;
   created_by: string;
-  status: 'To Do' | 'In Progress' | 'Review' | 'Completed' | 'Cancelled';
+  status: 'To Do' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   due_date?: string;
   start_date?: string;
@@ -61,7 +61,7 @@ export interface CreateTaskData {
   description?: string;
   project_id: string;
   assigned_to?: string;
-  status?: 'To Do' | 'In Progress' | 'Review' | 'Completed' | 'Cancelled';
+  status?: 'To Do' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
   priority?: 'Low' | 'Medium' | 'High' | 'Critical';
   due_date?: string;
   start_date?: string;

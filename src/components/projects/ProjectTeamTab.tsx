@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Project } from '@/types';
 import { useContacts } from '@/contexts/ContactsContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -5,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mail, Phone, UserPlus } from 'lucide-react';
+import { ProjectTeamMemberDialog } from './ProjectTeamMemberDialog';
 
 interface ProjectTeamTabProps {
   project: Project;
@@ -12,6 +14,7 @@ interface ProjectTeamTabProps {
 
 export function ProjectTeamTab({ project }: ProjectTeamTabProps) {
   const { contacts } = useContacts();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const teamMembers = project.team_members
     .map(memberId => contacts.find(c => c.id === memberId))
@@ -23,7 +26,17 @@ export function ProjectTeamTab({ project }: ProjectTeamTabProps) {
         <h3 className="text-lg font-semibold text-slate-900">
           Team Members ({teamMembers.length})
         </h3>
-        <Button size="sm">
+        <Button 
+          size="sm" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Add Member button clicked');
+            setDialogOpen(true);
+          }}
+          className="cursor-pointer hover:bg-blue-700 transition-colors relative z-10 bg-blue-600 text-white"
+          style={{ pointerEvents: 'all' }}
+        >
           <UserPlus className="w-4 h-4 mr-2" />
           Add Member
         </Button>
@@ -32,7 +45,18 @@ export function ProjectTeamTab({ project }: ProjectTeamTabProps) {
       {teamMembers.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-slate-500">No team members assigned yet.</p>
-          <Button variant="outline" size="sm" className="mt-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-4 cursor-pointer hover:bg-slate-50 transition-colors relative z-10" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Add Team Member button clicked');
+              setDialogOpen(true);
+            }}
+            style={{ pointerEvents: 'all' }}
+          >
             <UserPlus className="w-4 h-4 mr-2" />
             Add Team Member
           </Button>
@@ -44,7 +68,7 @@ export function ProjectTeamTab({ project }: ProjectTeamTabProps) {
               <div className="flex items-start gap-3">
                 <Avatar className="h-12 w-12">
                   <AvatarFallback className="bg-blue-600 text-white">
-                    {member?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    {member?.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
@@ -77,6 +101,12 @@ export function ProjectTeamTab({ project }: ProjectTeamTabProps) {
           ))}
         </div>
       )}
+
+      <ProjectTeamMemberDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        project={project}
+      />
     </div>
   );
 }

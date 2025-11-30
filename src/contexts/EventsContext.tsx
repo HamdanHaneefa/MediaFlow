@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Event } from '@/types';
+import eventsAPI from '@/services/api/events';
+import type { Event, CreateEventData, UpdateEventData, EventStats } from '@/services/api/events';
 
 interface EventsContextType {
   events: Event[];
@@ -14,27 +14,44 @@ interface EventsContextType {
   getEventsByProject: (projectId: string) => Event[];
   getEventsByDateRange: (startDate: Date, endDate: Date) => Event[];
   checkConflicts: (startTime: string, endTime: string, attendees: string[], excludeEventId?: string) => Event[];
+  updateStatus: (id: string, status: Event['status']) => Promise<Event | null>;
+  getStats: () => Promise<EventStats | null>;
 }
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
 
+// Helper function to ensure datetime is in ISO format
+const toISOString = (dateTime: string): string => {
+  // If it's already in ISO format, return as is
+  if (dateTime.includes('Z') || dateTime.includes('+') || dateTime.includes('T') && dateTime.length > 19) {
+    return dateTime;
+  }
+  // Convert to ISO format
+  return new Date(dateTime).toISOString();
+};
+
 export function EventsProvider({ children }: { children: ReactNode }) {
   const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false since we're not loading
   const [error, setError] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       setError(null);
-      const { data, error: fetchError } = await supabase
-        .from('events')
-        .select('*')
-        .order('start_time', { ascending: true });
-
-      if (fetchError) throw fetchError;
-      setEvents(data || []);
+      
+      console.log('EventsContext.fetchEvents - Starting fetch...');
+      
+      // Use the new backend API
+      const response = await eventsAPI.getAll();
+      console.log('EventsContext.fetchEvents - Response:', response);
+      
+      setEvents(response.items || response || []); // Handle both paginated and direct array responses
+      console.log('EventsContext.fetchEvents - Events set:', response.items?.length || response?.length || 0);
+      
     } catch (err) {
+      console.error('EventsContext.fetchEvents - Full error:', err);
+      console.error('EventsContext.fetchEvents - Error response:', err.response);
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
       console.error('Error fetching events:', err);
     } finally {
@@ -47,18 +64,32 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   ): Promise<Event | null> => {
     try {
       setError(null);
-      const { data, error: createError } = await supabase
-        .from('events')
-        .insert([event])
-        .select()
-        .single();
+      
+      console.log('EventsContext - Input event object:', event);
+      
+      // Create event data object that matches the API interface
+      const eventData: CreateEventData = {
+        title: event.title,
+        description: event.description,
+        type: event.event_type,
+        start_time: toISOString(event.start_time),
+        end_time: toISOString(event.end_time),
+        location: event.location,
+        project_id: event.project_id,
+        attendees: event.attendees,
+        color: event.color,
+        is_all_day: event.is_all_day,
+        recurrence: event.recurrence,
+        reminder: event.reminder,
+        status: event.status
+      };
 
-      if (createError) throw createError;
-      if (data) {
-        setEvents((prev) => [...prev, data]);
-        return data;
-      }
-      return null;
+      console.log('EventsContext - API payload:', eventData);
+
+      const newEvent = await eventsAPI.create(eventData);
+      setEvents(prev => [newEvent, ...prev]);
+      return newEvent;
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create event');
       console.error('Error creating event:', err);
@@ -72,19 +103,28 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   ): Promise<Event | null> => {
     try {
       setError(null);
-      const { data, error: updateError } = await supabase
-        .from('events')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      
+      // Convert Event updates to UpdateEventData format
+      const updateData: UpdateEventData = {};
+      
+      if (updates.title !== undefined) updateData.title = updates.title;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.event_type !== undefined) updateData.type = updates.event_type;
+      if (updates.start_time !== undefined) updateData.start_time = toISOString(updates.start_time);
+      if (updates.end_time !== undefined) updateData.end_time = toISOString(updates.end_time);
+      if (updates.location !== undefined) updateData.location = updates.location;
+      if (updates.project_id !== undefined) updateData.project_id = updates.project_id;
+      if (updates.attendees !== undefined) updateData.attendees = updates.attendees;
+      if (updates.color !== undefined) updateData.color = updates.color;
+      if (updates.is_all_day !== undefined) updateData.is_all_day = updates.is_all_day;
+      if (updates.recurrence !== undefined) updateData.recurrence = updates.recurrence;
+      if (updates.reminder !== undefined) updateData.reminder = updates.reminder;
+      if (updates.status !== undefined) updateData.status = updates.status;
 
-      if (updateError) throw updateError;
-      if (data) {
-        setEvents((prev) => prev.map((e) => (e.id === id ? data : e)));
-        return data;
-      }
-      return null;
+      const updatedEvent = await eventsAPI.update(id, updateData);
+      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      return updatedEvent;
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update event');
       console.error('Error updating event:', err);
@@ -95,14 +135,11 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const deleteEvent = async (id: string): Promise<boolean> => {
     try {
       setError(null);
-      const { error: deleteError } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', id);
-
-      if (deleteError) throw deleteError;
-      setEvents((prev) => prev.filter((e) => e.id !== id));
+      
+      await eventsAPI.delete(id);
+      setEvents(prev => prev.filter(event => event.id !== id));
       return true;
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete event');
       console.error('Error deleting event:', err);
@@ -131,6 +168,9 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     attendees: string[],
     excludeEventId?: string
   ): Event[] => {
+    // For now, use local checking. In production, you might want to use the API
+    // const conflicts = await eventsAPI.checkConflicts({ start_time: startTime, end_time: endTime, attendees, exclude_event_id: excludeEventId });
+    
     const newStart = new Date(startTime);
     const newEnd = new Date(endTime);
 
@@ -145,12 +185,36 @@ export function EventsProvider({ children }: { children: ReactNode }) {
         (newEnd > eventStart && newEnd <= eventEnd) ||
         (newStart <= eventStart && newEnd >= eventEnd);
 
-      const hasAttendeeOverlap = attendees.some((attendeeId) =>
-        event.attendees.includes(attendeeId)
+      const hasAttendeeOverlap = attendees.some((attendee) =>
+        event.attendees.includes(attendee)
       );
 
       return hasTimeOverlap && hasAttendeeOverlap;
     });
+  };
+
+  const updateStatus = async (id: string, status: Event['status']): Promise<Event | null> => {
+    try {
+      setError(null);
+      const updatedEvent = await eventsAPI.updateStatus(id, status);
+      setEvents(prev => prev.map(event => event.id === id ? updatedEvent : event));
+      return updatedEvent;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update event status');
+      console.error('Error updating event status:', err);
+      return null;
+    }
+  };
+
+  const getStats = async (): Promise<EventStats | null> => {
+    try {
+      setError(null);
+      return await eventsAPI.getStats();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get event statistics');
+      console.error('Error getting event statistics:', err);
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -171,6 +235,8 @@ export function EventsProvider({ children }: { children: ReactNode }) {
         getEventsByProject,
         getEventsByDateRange,
         checkConflicts,
+        updateStatus,
+        getStats,
       }}
     >
       {children}

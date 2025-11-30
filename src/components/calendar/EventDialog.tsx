@@ -3,7 +3,7 @@ import { Event, EventType, EventStatus } from '@/types';
 import { useEvents } from '@/contexts/EventsContext';
 import { useProjects } from '@/contexts/ProjectsContext';
 import { useContacts } from '@/contexts/ContactsContext';
-import { useResources } from '@/contexts/ResourcesContext';
+// import { useResources } from '@/contexts/ResourcesContext';
 import {
   Dialog,
   DialogContent,
@@ -50,7 +50,12 @@ export function EventDialog({
   const { createEvent, updateEvent, checkConflicts } = useEvents();
   const { projects } = useProjects();
   const { contacts } = useContacts();
-  const { locations, equipment } = useResources();
+  // const { locations, equipment } = useResources();
+  
+  // Temporary mock data for disabled contexts
+  const locations: never[] = [];
+  const equipment: never[] = [];
+  
   const isEditing = !!event;
 
   const [formData, setFormData] = useState({
@@ -120,7 +125,7 @@ export function EventDialog({
     } else {
       setConflicts([]);
     }
-  }, [formData.start_time, formData.end_time, selectedAttendees, event?.id]);
+  }, [formData.start_time, formData.end_time, selectedAttendees, event?.id, checkConflicts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -4,7 +4,6 @@ import { useProjects } from '@/contexts/ProjectsContext';
 export function useTeamProjects(currentUserId?: string) {
   const { teamMembers } = useTeam();
   const { projects } = useProjects();
-  console.log('Projects :', projects)
 
   // Get projects accessible to the current user based on team membership
   const getAccessibleProjects = () => {

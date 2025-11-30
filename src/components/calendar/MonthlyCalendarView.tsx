@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Event } from '@/types';
+import { Event } from '@/services/api/events';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -116,7 +116,7 @@ export function MonthlyCalendarView({ events, onEventClick, onDateClick }: Month
                       variant="outline"
                       className={cn(
                         'w-full justify-start text-xs px-1.5 py-0.5 cursor-pointer hover:shadow-sm transition-shadow',
-                        eventTypeColors[event.event_type]
+                        eventTypeColors[event.event_type as keyof typeof eventTypeColors] || 'bg-gray-100 text-gray-800 border-gray-200'
                       )}
                     >
                       <span className="truncate">

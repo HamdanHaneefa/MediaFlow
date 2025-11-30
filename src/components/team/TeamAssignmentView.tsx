@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,17 +27,34 @@ import { TeamMember } from '@/types';
 import { Plus, Users, DollarSign, X } from 'lucide-react';
 
 export function TeamAssignmentView() {
-  const { teamMembers = [], projectAssignments = [], assignToProject, removeFromProject } = useTeam();
+  const { teamMembers = [], projectAssignments = [], assignToProject, removeFromProject, fetchProjectAssignments } = useTeam();
   const { projects = [] } = useProjects();
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string>('');
   
+  // Debug logging
+  console.log('TeamAssignmentView - teamMembers:', teamMembers);
+  console.log('TeamAssignmentView - projectAssignments:', projectAssignments);
+  console.log('TeamAssignmentView - projects:', projects);
+
+  // Ensure we have the latest assignment data when component mounts
+  useEffect(() => {
+    console.log('TeamAssignmentView mounted - fetching project assignments');
+    fetchProjectAssignments();
+  }, [fetchProjectAssignments]); // Now fetchProjectAssignments is memoized with useCallback
+
   const [assignmentForm, setAssignmentForm] = useState({
     team_member_id: '',
     role_in_project: '',
     is_lead: false,
     responsibilities: [] as string[],
     hourly_rate_override: '',
+  });
+
+  const [formErrors, setFormErrors] = useState({
+    team_member_id: false,
+    role_in_project: false,
+    project: false,
   });
 
   const [newResponsibility, setNewResponsibility] = useState('');
@@ -47,34 +64,81 @@ export function TeamAssignmentView() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const handleAssignMember = () => {
-    if (!selectedProject || !assignmentForm.team_member_id || !assignmentForm.role_in_project) {
+  const getMemberName = (member: { name?: string; first_name?: string; last_name?: string }) => {
+    if (member.name) return member.name;
+    if (member.first_name && member.last_name) return `${member.first_name} ${member.last_name}`;
+    if (member.first_name) return member.first_name;
+    return 'Unknown Member';
+  };
+
+  const getMemberAvatar = (member: { avatar_url?: string; avatar?: string }) => {
+    return member.avatar_url || member.avatar;
+  };
+
+  const handleAssignMember = async () => {
+    console.log('Form data:', {
+      selectedProject,
+      team_member_id: assignmentForm.team_member_id,
+      role_in_project: assignmentForm.role_in_project
+    });
+
+    // Reset errors
+    setFormErrors({
+      team_member_id: false,
+      role_in_project: false,
+      project: false,
+    });
+
+    // Validate form
+    const errors = {
+      project: !selectedProject,
+      team_member_id: !assignmentForm.team_member_id,
+      role_in_project: !assignmentForm.role_in_project.trim(),
+    };
+
+    if (errors.project || errors.team_member_id || errors.role_in_project) {
+      setFormErrors(errors);
+      console.log('Validation failed:', errors);
       return;
     }
 
-    assignToProject({
-      project_id: selectedProject,
-      team_member_id: assignmentForm.team_member_id,
-      role_in_project: assignmentForm.role_in_project,
-      assigned_at: new Date().toISOString(),
-      assigned_by: 'current-user-id', // Would come from auth context
-      is_lead: assignmentForm.is_lead,
-      responsibilities: assignmentForm.responsibilities,
-      hourly_rate_override: assignmentForm.hourly_rate_override 
-        ? parseFloat(assignmentForm.hourly_rate_override) 
-        : undefined,
-    });
+    try {
+      const result = await assignToProject({
+        project_id: selectedProject,
+        team_member_id: assignmentForm.team_member_id,
+        role_in_project: assignmentForm.role_in_project,
+        assigned_at: new Date().toISOString(),
+        assigned_by: 'current-user-id', // Would come from auth context
+        is_lead: assignmentForm.is_lead,
+        responsibilities: assignmentForm.responsibilities,
+        hourly_rate_override: assignmentForm.hourly_rate_override 
+          ? parseFloat(assignmentForm.hourly_rate_override) 
+          : undefined,
+      });
 
-    // Reset form
-    setAssignmentForm({
-      team_member_id: '',
-      role_in_project: '',
-      is_lead: false,
-      responsibilities: [],
-      hourly_rate_override: '',
-    });
-    setSelectedProject('');
-    setShowAssignDialog(false);
+      if (result) {
+        console.log('Assignment successful:', result);
+        // Reset form
+        setAssignmentForm({
+          team_member_id: '',
+          role_in_project: '',
+          is_lead: false,
+          responsibilities: [],
+          hourly_rate_override: '',
+        });
+        setSelectedProject('');
+        setShowAssignDialog(false);
+        setFormErrors({
+          team_member_id: false,
+          role_in_project: false,
+          project: false,
+        });
+      } else {
+        console.error('Assignment failed: No result returned');
+      }
+    } catch (error) {
+      console.error('Assignment failed with error:', error);
+    }
   };
 
   const addResponsibility = () => {
@@ -98,6 +162,8 @@ export function TeamAssignmentView() {
     if (!projectAssignments || !teamMembers) return [];
     
     const assignments = projectAssignments.filter(a => a.project_id === projectId);
+    console.log(`TeamAssignmentView - assignments for project ${projectId}:`, assignments);
+    
     return assignments.map(assignment => {
       const member = teamMembers.find(m => m.id === assignment.team_member_id);
       return member ? { ...member, assignment } : null;
@@ -111,9 +177,12 @@ export function TeamAssignmentView() {
           <h3 className="text-lg font-semibold">Project Assignments</h3>
           <p className="text-sm text-gray-500">Assign team members to projects and manage their roles</p>
         </div>
-        <Button onClick={() => setShowAssignDialog(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Assign Member
+        <Button 
+          onClick={() => setShowAssignDialog(true)} 
+          className="flex items-center justify-center gap-2 px-4 py-2 min-w-fit"
+        >
+          <Plus className="w-4 h-4 flex-shrink-0" />
+          <span>Assign Member</span>
         </Button>
       </div>
 
@@ -144,9 +213,10 @@ export function TeamAssignmentView() {
                       setSelectedProject(project.id);
                       setShowAssignDialog(true);
                     }}
+                    className="flex items-center justify-center gap-1 px-3 py-1 min-w-fit"
                   >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Assign
+                    <Plus className="w-4 h-4 flex-shrink-0" />
+                    <span>Assign</span>
                   </Button>
                 </div>
               </CardHeader>
@@ -162,14 +232,14 @@ export function TeamAssignmentView() {
                         >
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={member.avatar_url} alt={member.name || 'Member'} />
+                              <AvatarImage src={getMemberAvatar(member)} alt={getMemberName(member)} />
                               <AvatarFallback className="text-xs">
-                                {getInitials(member.name || 'Unknown Member')}
+                                {getInitials(getMemberName(member))}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{member.name || 'Unknown Member'}</span>
+                                <span className="text-sm font-medium">{getMemberName(member)}</span>
                                 {assignment.is_lead && (
                                   <Badge variant="outline" className="text-xs">Lead</Badge>
                                 )}
@@ -228,9 +298,9 @@ export function TeamAssignmentView() {
           <div className="space-y-4">
             {!selectedProject && (
               <div>
-                <Label htmlFor="project">Project</Label>
+                <Label htmlFor="project">Project *</Label>
                 <Select value={selectedProject} onValueChange={setSelectedProject}>
-                  <SelectTrigger>
+                  <SelectTrigger className={formErrors.project ? "border-red-500" : ""}>
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
@@ -241,50 +311,64 @@ export function TeamAssignmentView() {
                     ))}
                   </SelectContent>
                 </Select>
+                {formErrors.project && (
+                  <p className="text-sm text-red-500 mt-1">Please select a project</p>
+                )}
               </div>
             )}
 
             <div>
-              <Label htmlFor="member">Team Member</Label>
+              <Label htmlFor="member">Team Member *</Label>
               <Select 
                 value={assignmentForm.team_member_id} 
                 onValueChange={(value) => setAssignmentForm(prev => ({ ...prev, team_member_id: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className={formErrors.team_member_id ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select a team member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {teamMembers
-                    .filter(member => member.status === 'active')
-                    .map((member) => (
-                      <SelectItem key={member.id} value={member.id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={member.avatar_url} alt={member.name || 'Member'} />
-                            <AvatarFallback className="text-xs">
-                              {getInitials(member.name || 'Unknown Member')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span>{member.name || 'Unknown Member'}</span>
-                          <Badge variant="outline" className="ml-auto">
-                            {member.role || 'No Role'}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
+                  {teamMembers && teamMembers.length > 0 ? (
+                    teamMembers
+                      .filter(member => member && member.status === 'active')
+                      .map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={getMemberAvatar(member)} alt={getMemberName(member)} />
+                              <AvatarFallback className="text-xs">
+                                {getInitials(getMemberName(member))}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{getMemberName(member)}</span>
+                            <Badge variant="outline" className="ml-auto">
+                              {member.role || 'No Role'}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500">No active team members available</div>
+                  )}
                 </SelectContent>
               </Select>
+              {formErrors.team_member_id && (
+                <p className="text-sm text-red-500 mt-1">Please select a team member</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="role">Role in Project</Label>
+                <Label htmlFor="role">Role in Project *</Label>
                 <Input
                   id="role"
                   value={assignmentForm.role_in_project}
                   onChange={(e) => setAssignmentForm(prev => ({ ...prev, role_in_project: e.target.value }))}
                   placeholder="e.g., Lead Editor, Camera Operator"
+                  className={formErrors.role_in_project ? "border-red-500" : ""}
                 />
+                {formErrors.role_in_project && (
+                  <p className="text-sm text-red-500 mt-1">Please enter a role</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="rate">Hourly Rate Override ($)</Label>

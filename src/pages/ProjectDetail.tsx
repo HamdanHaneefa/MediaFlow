@@ -36,7 +36,7 @@ export function ProjectDetail() {
   const client = project?.client_id ? getContactById(project.client_id) : undefined;
 
   const projectTasks = tasks.filter(task => task.project_id === id);
-  const completedTasks = projectTasks.filter(task => task.status === 'Completed');
+  const completedTasks = projectTasks.filter(task => task.status === 'Done');
   const progress = projectTasks.length > 0
     ? Math.round((completedTasks.length / projectTasks.length) * 100)
     : 0;

@@ -30,7 +30,7 @@ interface TeamCreationDialogProps {
 
 export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
   const { projects } = useProjects();
-  const { teamMembers, createTeam } = useTeam();
+  const { teamMembers, createTeam, fetchTeamMembers } = useTeam();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -40,40 +40,46 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
-  const managers = teamMembers.filter(
-    member => member.permissions?.can_manage_team && member.status === 'active'
-  );
+  // Fetch team members when dialog opens
+  React.useEffect(() => {
+    if (open && teamMembers.length === 0) {
+      fetchTeamMembers();
+    }
+  }, [open, teamMembers.length, fetchTeamMembers]);
 
-  // If no managers are found, fall back to all active members
-  const availableManagers = managers.length > 0 ? managers : teamMembers.filter(
-    member => member.status === 'active'
+  // Allow any active team member to be a manager
+  const availableManagers = teamMembers.filter(
+    member => member.is_active === true || member.status === 'active'
   );
 
   const availableMembers = teamMembers.filter(
-    member => member.status === 'active'
+    member => member.is_active === true || member.status === 'active'
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.manager_id) {
       return;
     }
 
-    createTeam({
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      manager_id: formData.manager_id,
-      member_ids: selectedMembers,
-      project_ids: selectedProjects,
-      created_by: formData.manager_id, // In real app, this would be current user
-    });
+    try {
+      await createTeam({
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        manager_id: formData.manager_id,
+        member_ids: selectedMembers,
+        project_ids: selectedProjects,
+      });
 
-    // Reset form
-    setFormData({ name: '', description: '', manager_id: '' });
-    setSelectedMembers([]);
-    setSelectedProjects([]);
-    onClose();
+      // Reset form
+      setFormData({ name: '', description: '', manager_id: '' });
+      setSelectedMembers([]);
+      setSelectedProjects([]);
+      onClose();
+    } catch (error) {
+      console.error('Error creating team:', error);
+    }
   };
 
   const handleMemberToggle = (memberId: string) => {
@@ -92,9 +98,16 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
     );
   };
 
-  const getInitials = (name: string) => {
-    if (!name || typeof name !== 'string') return '??';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (member: { first_name?: string; last_name?: string; name?: string }) => {
+    // Handle API format (first_name, last_name) or legacy format (name)
+    const name = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
+    if (!name) return '??';
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
+  };
+
+  const getFullName = (member: { first_name?: string; last_name?: string; name?: string }) => {
+    // Handle API format (first_name, last_name) or legacy format (name)
+    return member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Unknown Member';
   };
 
   return (
@@ -146,22 +159,28 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
                   <SelectValue placeholder="Select team manager" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableManagers.map((manager) => (
-                    <SelectItem key={manager.id} value={manager.id}>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={manager.avatar_url} alt={manager.name || 'Manager'} />
-                          <AvatarFallback className="text-xs">
-                            {getInitials(manager.name || 'Unknown Manager')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{manager.name || 'Unknown Manager'}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          {manager.role}
-                        </Badge>
-                      </div>
+                  {availableManagers.length > 0 ? (
+                    availableManagers.map((manager) => (
+                      <SelectItem key={manager.id} value={manager.id}>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={manager.avatar_url || manager.avatar} alt={getFullName(manager)} />
+                            <AvatarFallback className="text-xs">
+                              {getInitials(manager)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{getFullName(manager)}</span>
+                          <Badge variant="outline" className="ml-auto">
+                            {manager.role}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      No active team members available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -175,33 +194,39 @@ export function TeamCreationDialog({ open, onClose }: TeamCreationDialogProps) {
             </Label>
             <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
               <div className="space-y-2">
-                {availableMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar_url} alt={member.name || 'Member'} />
-                        <AvatarFallback className="text-xs">
-                          {getInitials(member.name || 'Unknown Member')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-sm">{member.name || 'Unknown Member'}</div>
-                        <div className="text-xs text-gray-500">{member.role || 'No Role'}</div>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant={selectedMembers.includes(member.id) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleMemberToggle(member.id)}
+                {availableMembers.length > 0 ? (
+                  availableMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
                     >
-                      {selectedMembers.includes(member.id) ? 'Remove' : 'Add'}
-                    </Button>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={member.avatar_url || member.avatar} alt={getFullName(member)} />
+                          <AvatarFallback className="text-xs">
+                            {getInitials(member)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-sm">{getFullName(member)}</div>
+                          <div className="text-xs text-gray-500">{member.role || member.position || 'No Role'}</div>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant={selectedMembers.includes(member.id) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleMemberToggle(member.id)}
+                      >
+                        {selectedMembers.includes(member.id) ? 'Remove' : 'Add'}
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    No active team members available
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

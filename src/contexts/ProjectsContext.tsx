@@ -58,17 +58,37 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     totalPages: 0,
   });
 
+  // Load projects from localStorage on init
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('mediaflow_projects');
+    if (savedProjects) {
+      try {
+        const parsed = JSON.parse(savedProjects);
+        console.log('Loaded projects from localStorage:', parsed.length);
+        setProjects(parsed);
+      } catch (err) {
+        console.error('Failed to parse saved projects:', err);
+      }
+    }
+  }, []);
+
   const fetchProjects = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching projects from database...');
       const response = await projectsAPI.getAll({ page, limit });
       const transformedProjects = response.items.map(transformProject);
+      
+      console.log('Fetched projects from database:', transformedProjects.length);
       setProjects(transformedProjects);
       setPagination(response.pagination);
+      
+      // Save to localStorage for persistence
+      localStorage.setItem('mediaflow_projects', JSON.stringify(transformedProjects));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch projects');
-      console.error('Error fetching projects:', err);
+      console.error('Error fetching projects - keeping localStorage data:', err);
     } finally {
       setLoading(false);
     }
@@ -156,12 +176,32 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const addTeamMember = async (projectId: string, userId: string, role: string) => {
     try {
       setError(null);
+      
+      // Optimistically update the UI first
+      setProjects((prev) => {
+        const updated = prev.map((p) => 
+          p.id === projectId 
+            ? { ...p, team_members: [...p.team_members, userId] }
+            : p
+        );
+        
+        // Persist to localStorage as backup
+        localStorage.setItem('mediaflow_projects', JSON.stringify(updated));
+        return updated;
+      });
+      
+      console.log(`Adding team member ${userId} (${role}) to project ${projectId}`);
+      
+      // Try to update the backend
       await projectsAPI.addMember(projectId, userId, role);
-      // Refresh project data to get updated team members
-      await fetchProjects(pagination.page, pagination.limit);
+      console.log(`Successfully added team member ${userId} to project ${projectId} in database`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add team member');
-      console.error('Error adding team member:', err);
+      // If API fails, keep the local update but log the error
+      console.error('Failed to add team member to database, but keeping local update:', err);
+      setError('Team member added locally - database sync failed');
+      
+      // Note: We're keeping the optimistic update even if API fails
+      // This ensures the UI works even when the backend is unavailable
     }
   };
 

@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Event } from '@/types';
+import { Event } from '@/services/api/events'; // Use the backend Event type
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, MapPin, Users } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, isToday, parseISO, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useResources } from '@/contexts/ResourcesContext';
 
 interface WeeklyScheduleViewProps {
   events: Event[];
@@ -24,7 +23,6 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
 
 export function WeeklyScheduleView({ events, onEventClick, onTimeSlotClick }: WeeklyScheduleViewProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const { locations } = useResources();
 
   const weekStart = startOfWeek(currentWeek);
   const weekEnd = endOfWeek(currentWeek);
@@ -43,11 +41,6 @@ export function WeeklyScheduleView({ events, onEventClick, onTimeSlotClick }: We
       const eventStart = parseISO(event.start_time);
       return isSameDay(eventStart, date) && eventStart.getHours() === hour;
     });
-  };
-
-  const getLocation = (locationId?: string) => {
-    if (!locationId) return null;
-    return locations.find((l) => l.id === locationId);
   };
 
   return (
@@ -119,7 +112,6 @@ export function WeeklyScheduleView({ events, onEventClick, onTimeSlotClick }: We
                     >
                       <div className="space-y-1">
                         {hourEvents.map((event) => {
-                          const location = getLocation(event.location_id);
                           const attendeeCount = event.attendees.length;
 
                           return (
@@ -134,7 +126,7 @@ export function WeeklyScheduleView({ events, onEventClick, onTimeSlotClick }: We
                               <div
                                 className={cn(
                                   'text-xs rounded p-1.5 cursor-pointer hover:shadow-md transition-shadow border',
-                                  eventTypeColors[event.event_type]
+                                  eventTypeColors[event.event_type as keyof typeof eventTypeColors] || 'bg-gray-100 text-gray-800 border-gray-200'
                                 )}
                               >
                                 <div className="font-medium truncate mb-1">{event.title}</div>
@@ -142,10 +134,10 @@ export function WeeklyScheduleView({ events, onEventClick, onTimeSlotClick }: We
                                   {format(parseISO(event.start_time), 'HH:mm')} -{' '}
                                   {format(parseISO(event.end_time), 'HH:mm')}
                                 </div>
-                                {location && (
+                                {event.location && (
                                   <div className="flex items-center gap-1 mt-1 opacity-80">
                                     <MapPin className="w-3 h-3" />
-                                    <span className="truncate">{location.name}</span>
+                                    <span className="truncate">{event.location}</span>
                                   </div>
                                 )}
                                 {attendeeCount > 0 && (

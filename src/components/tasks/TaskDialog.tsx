@@ -165,8 +165,9 @@ export function TaskDialog({ open, onOpenChange, task, projectId }: TaskDialogPr
                 <SelectContent>
                   <SelectItem value="To Do">To Do</SelectItem>
                   <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="In Review">In Review</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Review">Review</SelectItem>
+                  <SelectItem value="Done">Done</SelectItem>
+                  <SelectItem value="Blocked">Blocked</SelectItem>
                 </SelectContent>
               </Select>
             </div>

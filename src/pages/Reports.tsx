@@ -73,7 +73,7 @@ export function Reports() {
   const clients = contacts.filter(c => c.role === 'Client');
   const activeProjects = projects.filter(p => p.status === 'Active');
   const completedProjects = projects.filter(p => p.status === 'Completed');
-  const completedTasks = tasks.filter(t => t.status === 'Completed');
+  const completedTasks = tasks.filter(t => t.status === 'Done');
 
   const totalRevenue = mockRevenue.reduce((sum, m) => sum + m.revenue, 0);
   const totalProfit = mockRevenue.reduce((sum, m) => sum + m.profit, 0);
@@ -112,7 +112,7 @@ export function Reports() {
     const members = contacts.filter(c => c.role !== 'Client').slice(0, 6);
     return members.map(member => {
       const memberTasks = tasks.filter(t => t.assigned_to === member.id);
-      const completed = memberTasks.filter(t => t.status === 'Completed').length;
+      const completed = memberTasks.filter(t => t.status === 'Done').length;
       const completion = memberTasks.length > 0 ? (completed / memberTasks.length) * 100 : 0;
 
       return {
@@ -470,20 +470,24 @@ export function Reports() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="font-medium">Completed</span>
-                    <Badge className="bg-green-100 text-green-700">{tasks.filter(t => t.status === 'Completed').length}</Badge>
+                    <span className="font-medium">Done</span>
+                    <Badge className="bg-green-100 text-green-700">{tasks.filter(t => t.status === 'Done').length}</Badge>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <span className="font-medium">In Progress</span>
                     <Badge className="bg-blue-100 text-blue-700">{tasks.filter(t => t.status === 'In Progress').length}</Badge>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="font-medium">In Review</span>
-                    <Badge className="bg-orange-100 text-orange-700">{tasks.filter(t => t.status === 'In Review').length}</Badge>
+                    <span className="font-medium">Review</span>
+                    <Badge className="bg-orange-100 text-orange-700">{tasks.filter(t => t.status === 'Review').length}</Badge>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <span className="font-medium">To Do</span>
                     <Badge className="bg-gray-100 text-gray-700">{tasks.filter(t => t.status === 'To Do').length}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <span className="font-medium">Blocked</span>
+                    <Badge className="bg-red-100 text-red-700">{tasks.filter(t => t.status === 'Blocked').length}</Badge>
                   </div>
                 </div>
               </CardContent>

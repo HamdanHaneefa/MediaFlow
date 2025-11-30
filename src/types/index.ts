@@ -145,7 +145,7 @@ export interface Project {
   updated_at: string;
 }
 
-export type TaskStatus = 'To Do' | 'In Progress' | 'In Review' | 'Completed';
+export type TaskStatus = 'To Do' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
 export type TaskPriority = 'High' | 'Medium' | 'Low';
 export type TaskType = 'Creative' | 'Technical' | 'Administrative';
 

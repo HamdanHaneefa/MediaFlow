@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Event, EventType, EventStatus, Contact } from '@/types';
+import { Event } from '@/services/api/events';
+import { EventType, EventStatus, Contact } from '@/types';
 import { useEvents } from '@/contexts/EventsContext';
 import { useProjects } from '@/contexts/ProjectsContext';
 import { useContacts } from '@/contexts/ContactsContext';
-import { useResources } from '@/contexts/ResourcesContext';
-import { useCrewAvailability } from '@/contexts/CrewAvailabilityContext';
+// import { useResources } from '@/contexts/ResourcesContext';
+// import { useCrewAvailability } from '@/contexts/CrewAvailabilityContext';
 import {
   Dialog,
   DialogContent,
@@ -69,8 +70,22 @@ export function EventDialogEnhanced({
   const { createEvent, updateEvent, checkConflicts } = useEvents();
   const { projects } = useProjects();
   const { contacts } = useContacts();
-  const { locations, equipment, createBooking, checkEquipmentConflicts, getAvailableEquipment } = useResources();
-  const { checkCrewAvailability, getAvailableCrewForDateRange } = useCrewAvailability();
+  // const { locations, equipment, createBooking, checkEquipmentConflicts, getAvailableEquipment } = useResources();
+  // const { checkCrewAvailability, getAvailableCrewForDateRange } = useCrewAvailability();
+  
+  // Temporary mock data for disabled contexts
+  interface MockLocation { id: string; name: string; }
+  interface MockEquipment { id: string; name: string; type: string; }
+  
+  const locations: MockLocation[] = [];
+  const equipment: MockEquipment[] = [];
+  const createBooking = async () => null;
+  const checkEquipmentConflicts = () => [];
+  const getAvailableEquipment = () => [];
+  const checkCrewAvailability = () => Promise.resolve([]);
+  // Return all contact IDs as available crew for better UX during development
+  const getAvailableCrewForDateRange = () => contacts.map(c => c.id);
+  
   const isEditing = !!event;
 
   const [formData, setFormData] = useState({
@@ -85,13 +100,16 @@ export function EventDialogEnhanced({
     notes: '',
   });
 
+  interface CrewConflict { status: string; conflicts: Event[]; }
+  interface EquipmentConflict extends Event { equipment_id: string; }
+
   const [mediaOptions, setMediaOptions] = useState<MediaOptions>({});
   const [selectedAttendees, setSelectedAttendees] = useState<string[]>([]);
   const [selectedCrew, setSelectedCrew] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [conflicts, setConflicts] = useState<Event[]>([]);
-  const [crewConflicts, setCrewConflicts] = useState<Map<string, { status: string; conflicts: any[] }>>(new Map());
-  const [equipmentConflicts, setEquipmentConflicts] = useState<Map<string, any[]>>(new Map());
+  const [crewConflicts, setCrewConflicts] = useState<Map<string, CrewConflict>>(new Map());
+  const [equipmentConflicts, setEquipmentConflicts] = useState<Map<string, EquipmentConflict[]>>(new Map());
   const [loading, setLoading] = useState(false);
   const [allowOverbooking, setAllowOverbooking] = useState(false);
 
@@ -114,7 +132,7 @@ export function EventDialogEnhanced({
       });
       setSelectedAttendees(event.attendees || []);
       setSelectedCrew([]);
-      setSelectedEquipment(event.equipment_needed || []);
+      // setSelectedEquipment(event.equipment_needed || []); // TODO: Implement equipment tracking
       setMediaOptions({});
       setAllowOverbooking(false);
     } else {
@@ -175,7 +193,7 @@ export function EventDialogEnhanced({
       setCrewConflicts(new Map());
       setEquipmentConflicts(new Map());
     }
-  }, [formData.start_time, formData.end_time, selectedAttendees, selectedCrew, selectedEquipment, event?.id]);
+  }, [formData.start_time, formData.end_time, selectedAttendees, selectedCrew, selectedEquipment, event?.id, checkConflicts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,13 +209,25 @@ export function EventDialogEnhanced({
 
     try {
       const eventData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        event_type: formData.event_type,
+        start_time: formData.start_time,
+        end_time: formData.end_time,
+        location: formData.location_id === 'none' ? undefined : formData.location_id,
         project_id: formData.project_id === 'none' ? undefined : formData.project_id,
-        location_id: formData.location_id === 'none' ? undefined : formData.location_id,
         attendees: [...selectedAttendees, ...selectedCrew],
-        equipment_needed: selectedEquipment,
+        color: undefined, // Add if you have color selection in form
+        is_all_day: false, // Add if you have all-day toggle in form
+        recurrence: undefined, // Add if you have recurrence in form
+        reminder: undefined, // Add if you have reminders in form
+        status: formData.status,
+        // equipment_needed: selectedEquipment, // TODO: Implement equipment tracking
         notes: formData.notes + (mediaOptions ? `\n\nMedia Options: ${JSON.stringify(mediaOptions, null, 2)}` : ''),
       };
+
+      console.log('EventDialogEnhanced - Form Data:', formData);
+      console.log('EventDialogEnhanced - Event Data being sent:', eventData);
 
       let savedEvent: Event | null = null;
 

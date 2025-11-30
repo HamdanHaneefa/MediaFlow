@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import {
   teamAPI,
   type User as TeamUser,
@@ -7,12 +7,19 @@ import {
   type UpdatePasswordData,
   type SetPermissionsData,
   type Permission,
-  type TeamStats
+  type TeamStats,
+  type Team,
+  type CreateTeamData,
+  type UpdateTeamData
 } from '@/services/api';
+import { ProjectAssignment } from '@/types';
 
 interface TeamContextType {
   teamMembers: TeamUser[];
+  teams: Team[];
+  projectAssignments: ProjectAssignment[];
   loading: boolean;
+  teamsLoading: boolean;
   error: string | null;
   pagination: { page: number; limit: number; total: number; totalPages: number };
   fetchTeamMembers: (params?: { page?: number; limit?: number; search?: string; role?: string; department?: string; is_active?: boolean }) => Promise<void>;
@@ -27,13 +34,26 @@ interface TeamContextType {
   setPermissions: (userId: string, permissions: SetPermissionsData[]) => Promise<Permission[] | null>;
   getTeamStats: () => Promise<TeamStats | null>;
   getActiveMembers: () => Promise<void>;
+  // Team management methods
+  fetchTeams: (params?: { page?: number; limit?: number }) => Promise<void>;
+  createTeam: (data: CreateTeamData) => Promise<Team | null>;
+  updateTeam: (id: string, data: UpdateTeamData) => Promise<Team | null>;
+  deleteTeam: (id: string) => Promise<boolean>;
+  getTeamById: (id: string) => Team | undefined;
+  // Project assignment methods
+  assignToProject: (assignment: Omit<ProjectAssignment, 'id'>) => Promise<ProjectAssignment | null>;
+  removeFromProject: (assignmentId: string) => Promise<boolean>;
+  fetchProjectAssignments: () => Promise<void>;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 export function TeamProvider({ children }: { children: ReactNode }) {
   const [teamMembers, setTeamMembers] = useState<TeamUser[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [projectAssignments, setProjectAssignments] = useState<ProjectAssignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [teamsLoading, setTeamsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -42,7 +62,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     totalPages: 0,
   });
 
-  const fetchTeamMembers = async (params?: {
+  const fetchTeamMembers = useCallback(async (params?: {
     page?: number;
     limit?: number;
     search?: string;
@@ -62,7 +82,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Empty dependency array since this function doesn't depend on state
 
   const searchTeamMembers = async (query: string) => {
     try {
@@ -206,15 +226,158 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Teams management methods
+  const fetchTeams = useCallback(async (params?: { page?: number; limit?: number }) => {
+    try {
+      setTeamsLoading(true);
+      setError(null);
+      const response = await teamAPI.getAllTeams(params);
+      setTeams(response.items as Team[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch teams');
+      console.error('Error fetching teams:', err);
+    } finally {
+      setTeamsLoading(false);
+    }
+  }, []); // Empty dependency array since this function doesn't depend on state
+
+  const createTeam = async (data: CreateTeamData): Promise<Team | null> => {
+    try {
+      setError(null);
+      const newTeam = await teamAPI.createTeam(data) as Team;
+      setTeams((prev) => [newTeam, ...prev]);
+      return newTeam;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create team');
+      console.error('Error creating team:', err);
+      return null;
+    }
+  };
+
+  const updateTeam = async (id: string, data: UpdateTeamData): Promise<Team | null> => {
+    try {
+      setError(null);
+      const updatedTeam = await teamAPI.updateTeam(id, data) as Team;
+      setTeams((prev) => prev.map((t) => (t.id === id ? updatedTeam : t)));
+      return updatedTeam;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update team');
+      console.error('Error updating team:', err);
+      return null;
+    }
+  };
+
+  const deleteTeam = async (id: string): Promise<boolean> => {
+    try {
+      setError(null);
+      await teamAPI.deleteTeam(id);
+      setTeams((prev) => prev.filter((t) => t.id !== id));
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete team');
+      console.error('Error deleting team:', err);
+      return false;
+    }
+  };
+
+  const getTeamById = (id: string): Team | undefined => {
+    return teams.find((t) => t.id === id);
+  };
+
+  // Project assignment methods
+  const fetchProjectAssignments = useCallback(async () => {
+    try {
+      setError(null);
+      console.log('TeamContext - Fetching project assignments from database...');
+      
+      // Fetch all project assignments using the team API
+      const assignments = await teamAPI.getAllProjectAssignments();
+      console.log('TeamContext - Raw assignments from API:', assignments);
+      setProjectAssignments(assignments);
+      console.log('TeamContext - Set project assignments state:', assignments);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch project assignments');
+      console.error('TeamContext - Error fetching project assignments:', err);
+    }
+  }, []); // Empty dependency array since this function doesn't depend on any state
+
+  const assignToProject = async (assignment: Omit<ProjectAssignment, 'id'>): Promise<ProjectAssignment | null> => {
+    try {
+      setError(null);
+      console.log('Saving assignment to database:', assignment);
+      
+      // Use the actual team API to assign member to project
+      const assignmentResponse = await teamAPI.assignToProject({
+        project_id: assignment.project_id,
+        team_member_id: assignment.team_member_id,
+        role_in_project: assignment.role_in_project,
+        is_lead: assignment.is_lead,
+        responsibilities: assignment.responsibilities,
+        hourly_rate_override: assignment.hourly_rate_override,
+      });
+      
+      console.log('Database response:', assignmentResponse);
+      
+      // Convert the API response to our ProjectAssignment format
+      const newAssignment: ProjectAssignment = {
+        id: assignmentResponse.id,
+        project_id: assignmentResponse.project_id,
+        team_member_id: assignmentResponse.team_member_id,
+        role_in_project: assignmentResponse.role_in_project,
+        assigned_at: assignmentResponse.assigned_at,
+        assigned_by: assignment.assigned_by,
+        is_lead: assignmentResponse.is_lead,
+        responsibilities: assignmentResponse.responsibilities,
+        hourly_rate_override: assignmentResponse.hourly_rate_override,
+      };
+      
+      // Update local state
+      setProjectAssignments(prev => [...prev, newAssignment]);
+      console.log('Assignment saved to database successfully:', newAssignment);
+      
+      return newAssignment;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to assign member to project');
+      console.error('Error assigning member to project:', err);
+      return null;
+    }
+  };
+
+  const removeFromProject = async (assignmentId: string): Promise<boolean> => {
+    try {
+      setError(null);
+      console.log('Removing assignment from database:', assignmentId);
+      
+      // Use the actual team API to remove assignment
+      await teamAPI.removeAssignment(assignmentId);
+      
+      // Update local state
+      setProjectAssignments(prev => prev.filter(a => a.id !== assignmentId));
+      console.log('Assignment removed from database successfully:', assignmentId);
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove member from project');
+      console.error('Error removing member from project:', err);
+      return false;
+    }
+  };
+
   useEffect(() => {
+    console.log('TeamContext useEffect triggered - fetching initial data...');
     fetchTeamMembers();
-  }, []);
+    fetchTeams();
+    fetchProjectAssignments();
+  }, [fetchTeamMembers, fetchTeams, fetchProjectAssignments]); // All functions are now memoized
 
   return (
     <TeamContext.Provider
       value={{
         teamMembers,
+        teams,
+        projectAssignments,
         loading,
+        teamsLoading,
         error,
         pagination,
         fetchTeamMembers,
@@ -229,6 +392,16 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         setPermissions,
         getTeamStats,
         getActiveMembers,
+        // Teams management
+        fetchTeams,
+        createTeam,
+        updateTeam,
+        deleteTeam,
+        getTeamById,
+        // Project assignments
+        assignToProject,
+        removeFromProject,
+        fetchProjectAssignments,
       }}
     >
       {children}

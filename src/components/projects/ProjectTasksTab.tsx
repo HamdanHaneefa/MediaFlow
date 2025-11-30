@@ -14,7 +14,7 @@ interface ProjectTasksTabProps {
   project: Project;
 }
 
-const taskStatuses: TaskStatus[] = ['To Do', 'In Progress', 'In Review', 'Completed'];
+const taskStatuses: TaskStatus[] = ['To Do', 'In Progress', 'Review', 'Done', 'Blocked'];
 
 export function ProjectTasksTab({ project }: ProjectTasksTabProps) {
   const { tasks, updateTask } = useTasks();
@@ -64,7 +64,7 @@ export function ProjectTasksTab({ project }: ProjectTasksTabProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         {taskStatuses.map((status) => {
           const statusTasks = getTasksByStatus(status);
           return (
@@ -115,7 +115,7 @@ export function ProjectTasksTab({ project }: ProjectTasksTabProps) {
                           <div className="flex items-center gap-2 text-sm text-slate-600">
                             <Calendar className="w-4 h-4" />
                             <span>{format(new Date(task.due_date), 'MMM d')}</span>
-                            {new Date(task.due_date) < new Date() && task.status !== 'Completed' && (
+                            {new Date(task.due_date) < new Date() && task.status !== 'Done' && (
                               <AlertCircle className="w-4 h-4 text-red-500" />
                             )}
                           </div>
