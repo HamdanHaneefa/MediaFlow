@@ -26,8 +26,7 @@ export function Projects() {
   // In a real app, this would come from authentication context
   const currentUserId = '1';
   const { accessibleProjects } = useTeamProjects(currentUserId);
-  console.log('Projects :', accessibleProjects);
-  
+
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -88,41 +87,50 @@ export function Projects() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between px-1 sm:px-0">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Projects</h2>
-            <p className="text-slate-600 mt-1">Track your active productions</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+              Projects
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 mt-1">
+              Track your active productions
+            </p>
           </div>
         </div>
-        <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-          <p className="text-slate-500">Loading projects...</p>
+        <div className="bg-white rounded-lg border border-slate-200 p-8 sm:p-12 text-center">
+          <p className="text-sm sm:text-base text-slate-500">Loading projects...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-4 sm:space-y-6 pb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 px-1 sm:px-0">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 truncate">Projects</h2>
-          <p className="text-sm md:text-base text-slate-600 mt-1">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 truncate">
+            Projects
+          </h2>
+          <p className="text-xs sm:text-sm md:text-base text-slate-600 mt-1">
             {filteredAndSortedProjects.length} {filteredAndSortedProjects.length === 1 ? 'project' : 'projects'}
           </p>
         </div>
         <Button
-          className="bg-blue-600 hover:bg-blue-700 min-h-[44px] shrink-0"
+          className="bg-blue-600 hover:bg-blue-700 min-h-[40px] sm:min-h-[44px] shrink-0 px-3 sm:px-4"
           onClick={() => setDialogOpen(true)}
           size="sm"
         >
-          <Plus className="w-4 h-4 md:mr-2" />
-          <span className="hidden md:inline">New Project</span>
+          <Plus className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">New Project</span>
+          <span className="sm:hidden">New</span>
         </Button>
       </div>
 
+      {/* Filters and Content */}
       <div className="bg-white rounded-lg border border-slate-200">
-        <div className="p-4 border-b border-slate-200 space-y-4">
+        <div className="p-3 sm:p-4 border-b border-slate-200 space-y-3 sm:space-y-4">
           <ProjectFilters
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -135,24 +143,24 @@ export function Projects() {
             onClearFilters={clearFilters}
           />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
-              <TabsList>
-                <TabsTrigger value="grid" className="gap-2">
-                  <Grid3x3 className="w-4 h-4" />
-                  Grid
+              <TabsList className="grid w-full grid-cols-2 sm:w-auto">
+                <TabsTrigger value="grid" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Grid3x3 className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Grid</span>
                 </TabsTrigger>
-                <TabsTrigger value="list" className="gap-2">
-                  <List className="w-4 h-4" />
-                  List
+                <TabsTrigger value="list" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <List className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">List</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-slate-500" />
+            <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
+              <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500 hidden sm:block" />
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] h-9 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -166,30 +174,31 @@ export function Projects() {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           {filteredAndSortedProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-500 mb-4">
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-sm sm:text-base text-slate-500 mb-3 sm:mb-4">
                 {accessibleProjects.length === 0
                   ? 'No projects assigned to your team yet.'
                   : 'No projects match your filters.'
                 }
               </p>
               {accessibleProjects.length === 0 && (
-                <p className="text-sm text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-400">
                   Contact your manager to get assigned to projects.
                 </p>
               )}
             </div>
           ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredAndSortedProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
             </div>
           ) : (
-            <div className="space-y-0">
-              <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-slate-50 rounded-t-lg border-b border-slate-200 text-sm font-medium text-slate-600">
+            <div className="space-y-0 overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6">
+              {/* Hide header on mobile, show on desktop */}
+              <div className="hidden lg:grid grid-cols-12 gap-4 px-4 py-3 bg-slate-50 rounded-t-lg border-b border-slate-200 text-sm font-medium text-slate-600 min-w-[800px]">
                 <div className="col-span-3">Project</div>
                 <div className="col-span-2">Client</div>
                 <div className="col-span-2">Status & Phase</div>
@@ -197,9 +206,11 @@ export function Projects() {
                 <div className="col-span-1">Team</div>
                 <div className="col-span-2">Budget & Deadline</div>
               </div>
-              {filteredAndSortedProjects.map((project) => (
-                <ProjectListItem key={project.id} project={project} />
-              ))}
+              <div className="min-w-[800px] lg:min-w-0">
+                {filteredAndSortedProjects.map((project) => (
+                  <ProjectListItem key={project.id} project={project} />
+                ))}
+              </div>
             </div>
           )}
         </div>

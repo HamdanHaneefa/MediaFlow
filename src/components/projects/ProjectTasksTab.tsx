@@ -53,98 +53,100 @@ export function ProjectTasksTab({ project }: ProjectTasksTabProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h3 className="text-base sm:text-lg font-semibold text-slate-900">
           Task Board ({projectTasks.length})
         </h3>
-        <Button size="sm" onClick={() => setTaskDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button size="sm" onClick={() => setTaskDialogOpen(true)} className="w-full sm:w-auto text-xs sm:text-sm">
+          <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
           Add Task
         </Button>
       </div>
 
-      <div className="grid grid-cols-5 gap-4">
-        {taskStatuses.map((status) => {
-          const statusTasks = getTasksByStatus(status);
-          return (
-            <div
-              key={status}
-              className="bg-slate-50 rounded-lg p-4 min-h-[500px]"
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(status)}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-slate-900">{status}</h4>
-                <Badge variant="secondary" className="bg-slate-200">
-                  {statusTasks.length}
-                </Badge>
-              </div>
+      <div className="overflow-x-auto pb-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 min-w-[600px]">
+          {taskStatuses.map((status) => {
+            const statusTasks = getTasksByStatus(status);
+            return (
+              <div
+                key={status}
+                className="bg-slate-50 rounded-lg p-3 sm:p-4 min-h-[400px] sm:min-h-[500px]"
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(status)}
+              >
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h4 className="text-sm sm:text-base font-semibold text-slate-900">{status}</h4>
+                  <Badge variant="secondary" className="bg-slate-200 text-xs">
+                    {statusTasks.length}
+                  </Badge>
+                </div>
 
-              <div className="space-y-3">
-                {statusTasks.map((task) => {
-                  const assignee = task.assigned_to ? getContactById(task.assigned_to) : null;
+                <div className="space-y-2 sm:space-y-3">
+                  {statusTasks.map((task) => {
+                    const assignee = task.assigned_to ? getContactById(task.assigned_to) : null;
 
-                  return (
-                    <Card
-                      key={task.id}
-                      draggable
-                      onDragStart={() => handleDragStart(task)}
-                      className="p-3 cursor-move hover:shadow-md transition-shadow"
-                    >
-                      <div className="space-y-3">
-                        <div>
-                          <h5 className="font-medium text-slate-900 mb-1">{task.title}</h5>
-                          {task.description && (
-                            <p className="text-sm text-slate-600 line-clamp-2">
-                              {task.description}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Badge className={getPriorityColor(task.priority)} variant="outline">
-                            {task.priority}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {task.type}
-                          </Badge>
-                        </div>
-
-                        {task.due_date && (
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <Calendar className="w-4 h-4" />
-                            <span>{format(new Date(task.due_date), 'MMM d')}</span>
-                            {new Date(task.due_date) < new Date() && task.status !== 'Done' && (
-                              <AlertCircle className="w-4 h-4 text-red-500" />
+                    return (
+                      <Card
+                        key={task.id}
+                        draggable
+                        onDragStart={() => handleDragStart(task)}
+                        className="p-2 sm:p-3 cursor-move hover:shadow-md transition-shadow"
+                      >
+                        <div className="space-y-2 sm:space-y-3">
+                          <div>
+                            <h5 className="text-xs sm:text-sm font-medium text-slate-900 mb-1 break-words">{task.title}</h5>
+                            {task.description && (
+                              <p className="text-xs text-slate-600 line-clamp-2">
+                                {task.description}
+                              </p>
                             )}
                           </div>
-                        )}
 
-                        {assignee && (
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="bg-blue-600 text-white text-xs">
-                                {assignee.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm text-slate-600">{assignee.name}</span>
+                          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                            <Badge className={`${getPriorityColor(task.priority)} text-xs`} variant="outline">
+                              {task.priority}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {task.type}
+                            </Badge>
                           </div>
-                        )}
-                      </div>
-                    </Card>
-                  );
-                })}
 
-                {statusTasks.length === 0 && (
-                  <div className="text-center py-8 text-slate-400 text-sm">
-                    No tasks
-                  </div>
-                )}
+                          {task.due_date && (
+                            <div className="flex items-center gap-1 sm:gap-2 text-xs text-slate-600">
+                              <Calendar className="w-3 h-3" />
+                              <span>{format(new Date(task.due_date), 'MMM d')}</span>
+                              {new Date(task.due_date) < new Date() && task.status !== 'Done' && (
+                                <AlertCircle className="w-3 h-3 text-red-500" />
+                              )}
+                            </div>
+                          )}
+
+                          {assignee && (
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
+                                <AvatarFallback className="bg-blue-600 text-white text-xs">
+                                  {assignee.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs text-slate-600 truncate">{assignee.name}</span>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    );
+                  })}
+
+                  {statusTasks.length === 0 && (
+                    <div className="text-center py-6 sm:py-8 text-slate-400 text-xs sm:text-sm">
+                      No tasks
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       <TaskDialog

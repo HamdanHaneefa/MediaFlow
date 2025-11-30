@@ -280,14 +280,10 @@ export const teamAPI = {
 
   // Get all project assignments by fetching team members with their assignments
   getAllProjectAssignments: async (): Promise<{ id: string; project_id: string; team_member_id: string; role_in_project: string; assigned_at: string; assigned_by: string; is_lead: boolean; responsibilities: string[]; hourly_rate_override?: number }[]> => {
-    // TODO: Remove this mock data once the API is working correctly
-    console.log('TeamAPI - getAllProjectAssignments called');
-    
     try {
       // First try to get team members with expanded data
       const response = await adminApiClient.get('/team/members?limit=1000');
       const members = response.data.data.items || [];
-      console.log('TeamAPI - Fetched members:', members.length);
       
       // Extract all assignments from all members
       const allAssignments: Array<{
@@ -307,7 +303,6 @@ export const teamAPI = {
         try {
           const memberDetail = await adminApiClient.get(`/team/members/${member.id}`);
           const memberData = memberDetail.data.data;
-          console.log(`TeamAPI - Member ${member.id} assignments:`, memberData.project_assignments);
           
           if (memberData.project_assignments && memberData.project_assignments.length > 0) {
             memberData.project_assignments.forEach((assignment: {
@@ -335,31 +330,13 @@ export const teamAPI = {
             });
           }
         } catch (err) {
-          console.warn(`TeamAPI - Failed to fetch details for member ${member.id}:`, err);
+          console.warn(`Failed to fetch details for member ${member.id}:`, err);
         }
-      }
-      
-      console.log('TeamAPI - Total assignments found:', allAssignments.length, allAssignments);
-      
-      // If no real assignments found, return a mock assignment for testing
-      if (allAssignments.length === 0 && members.length > 0) {
-        console.log('TeamAPI - No assignments found, returning mock data for testing...');
-        return [{
-          id: 'mock-assignment-1',
-          project_id: 'f9c4a013-2cc8-40ec-9e94-872493790a0b', // Use one of the project IDs from your screenshot
-          team_member_id: members[0].id,
-          role_in_project: 'Test Editor',
-          assigned_at: new Date().toISOString(),
-          assigned_by: 'system',
-          is_lead: false,
-          responsibilities: ['Testing', 'UI Development'],
-          hourly_rate_override: 75.00,
-        }];
       }
       
       return allAssignments;
     } catch (err) {
-      console.error('TeamAPI - Error in getAllProjectAssignments:', err);
+      console.error('Error in getAllProjectAssignments:', err);
       // Return empty array on error
       return [];
     }

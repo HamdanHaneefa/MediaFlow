@@ -70,16 +70,16 @@ export default function FinancialDashboard() {
   const profitMargin = totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(1) : '0';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Financial Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Profit Margin</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profitMargin}%</div>
+            <div className="text-xl sm:text-2xl font-bold">{profitMargin}%</div>
             <div className="flex items-center space-x-2 mt-2">
               <Progress value={Math.max(0, Math.min(100, parseFloat(profitMargin)))} className="flex-1" />
               <span className="text-xs text-muted-foreground">{profitMargin}%</span>
@@ -89,22 +89,22 @@ export default function FinancialDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Expense Status</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Expense Status</CardTitle>
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm">Pending</span>
-                <Badge variant="outline">{pendingExpenses.length}</Badge>
+                <span className="text-xs sm:text-sm">Pending</span>
+                <Badge variant="outline" className="text-xs">{pendingExpenses.length}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Approved</span>
-                <Badge variant="default">{approvedExpenses.length}</Badge>
+                <span className="text-xs sm:text-sm">Approved</span>
+                <Badge variant="default" className="text-xs">{approvedExpenses.length}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Rejected</span>
-                <Badge variant="destructive">{rejectedExpenses.length}</Badge>
+                <span className="text-xs sm:text-sm">Rejected</span>
+                <Badge variant="destructive" className="text-xs">{rejectedExpenses.length}</Badge>
               </div>
             </div>
           </CardContent>
@@ -112,22 +112,22 @@ export default function FinancialDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Income Status</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Income Status</CardTitle>
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm">Expected</span>
-                <Badge variant="outline">{pendingIncome.length}</Badge>
+                <span className="text-xs sm:text-sm">Expected</span>
+                <Badge variant="outline" className="text-xs">{pendingIncome.length}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Received</span>
-                <Badge variant="default">{receivedIncome.length}</Badge>
+                <span className="text-xs sm:text-sm">Received</span>
+                <Badge variant="default" className="text-xs">{receivedIncome.length}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Overdue</span>
-                <Badge variant="destructive">{overdueIncome.length}</Badge>
+                <span className="text-xs sm:text-sm">Overdue</span>
+                <Badge variant="destructive" className="text-xs">{overdueIncome.length}</Badge>
               </div>
             </div>
           </CardContent>
@@ -135,19 +135,19 @@ export default function FinancialDashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Monthly Trends */}
         <Card>
-          <CardHeader>
-            <CardTitle>Monthly Financial Trends</CardTitle>
-            <CardDescription>Income vs Expenses over time</CardDescription>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Monthly Financial Trends</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Income vs Expenses over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip formatter={(value) => [`$${value?.toLocaleString()}`, '']} />
                 <Line type="monotone" dataKey="income" stroke="#00C49F" strokeWidth={2} name="Income" />
                 <Line type="monotone" dataKey="expenses" stroke="#FF8042" strokeWidth={2} name="Expenses" />
@@ -159,12 +159,12 @@ export default function FinancialDashboard() {
 
         {/* Expense Categories */}
         <Card>
-          <CardHeader>
-            <CardTitle>Expenses by Category</CardTitle>
-            <CardDescription>Distribution of spending across categories</CardDescription>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Expenses by Category</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Distribution of spending across categories</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={categoryData}
@@ -189,16 +189,16 @@ export default function FinancialDashboard() {
 
       {/* Project Profitability */}
       <Card>
-        <CardHeader>
-          <CardTitle>Project Profitability</CardTitle>
-          <CardDescription>Income vs Expenses by project</CardDescription>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">Project Profitability</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Income vs Expenses by project</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={projectData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
               <Tooltip formatter={(value) => [`$${value?.toLocaleString()}`, '']} />
               <Bar dataKey="income" fill="#00C49F" name="Income" />
               <Bar dataKey="expenses" fill="#FF8042" name="Expenses" />
@@ -208,27 +208,27 @@ export default function FinancialDashboard() {
       </Card>
 
       {/* Recent Activity */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Expenses</CardTitle>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Recent Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {expenses.slice(0, 5).map((expense) => (
-                <div key={expense.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center h-8 w-8 bg-red-100 rounded-full">
-                      <TrendingDown className="h-4 w-4 text-red-600" />
+                <div key={expense.id} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                    <div className="flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 bg-red-100 rounded-full flex-shrink-0">
+                      <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                     </div>
-                    <div>
-                      <p className="font-medium">{expense.title}</p>
-                      <p className="text-sm text-muted-foreground">{expense.category}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-xs sm:text-sm truncate">{expense.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{expense.category}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">${expense.amount.toLocaleString()}</p>
-                    <Badge variant={expense.status === 'Approved' ? 'default' : 'outline'}>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-medium text-xs sm:text-sm">${expense.amount.toLocaleString()}</p>
+                    <Badge variant={expense.status === 'Approved' ? 'default' : 'outline'} className="text-xs">
                       {expense.status}
                     </Badge>
                   </div>
@@ -239,25 +239,25 @@ export default function FinancialDashboard() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Income</CardTitle>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Recent Income</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {income.slice(0, 5).map((incomeItem) => (
-                <div key={incomeItem.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center h-8 w-8 bg-green-100 rounded-full">
-                      <TrendingUp className="h-4 w-4 text-green-600" />
+                <div key={incomeItem.id} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                    <div className="flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 bg-green-100 rounded-full flex-shrink-0">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                     </div>
-                    <div>
-                      <p className="font-medium">{incomeItem.title}</p>
-                      <p className="text-sm text-muted-foreground">{incomeItem.income_type}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-xs sm:text-sm truncate">{incomeItem.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{incomeItem.income_type}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">${incomeItem.amount.toLocaleString()}</p>
-                    <Badge variant={incomeItem.status === 'Received' ? 'default' : 'outline'}>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-medium text-xs sm:text-sm">${incomeItem.amount.toLocaleString()}</p>
+                    <Badge variant={incomeItem.status === 'Received' ? 'default' : 'outline'} className="text-xs">
                       {incomeItem.status}
                     </Badge>
                   </div>
@@ -271,35 +271,35 @@ export default function FinancialDashboard() {
       {/* Alerts */}
       {(pendingExpenses.length > 0 || overdueIncome.length > 0) && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 flex-shrink-0" />
               <span>Action Required</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {pendingExpenses.length > 0 && (
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Pending Expense Approvals</p>
-                    <p className="text-sm text-muted-foreground">
+                <div className="flex items-center justify-between p-2 sm:p-3 bg-yellow-50 rounded-lg gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-xs sm:text-sm">Pending Expense Approvals</p>
+                    <p className="text-xs text-muted-foreground">
                       {pendingExpenses.length} expenses waiting for approval
                     </p>
                   </div>
-                  <Badge variant="outline">{pendingExpenses.length}</Badge>
+                  <Badge variant="outline" className="text-xs flex-shrink-0">{pendingExpenses.length}</Badge>
                 </div>
               )}
               
               {overdueIncome.length > 0 && (
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Overdue Payments</p>
-                    <p className="text-sm text-muted-foreground">
+                <div className="flex items-center justify-between p-2 sm:p-3 bg-red-50 rounded-lg gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-xs sm:text-sm">Overdue Payments</p>
+                    <p className="text-xs text-muted-foreground">
                       {overdueIncome.length} payments are overdue
                     </p>
                   </div>
-                  <Badge variant="destructive">{overdueIncome.length}</Badge>
+                  <Badge variant="destructive" className="text-xs flex-shrink-0">{overdueIncome.length}</Badge>
                 </div>
               )}
             </div>

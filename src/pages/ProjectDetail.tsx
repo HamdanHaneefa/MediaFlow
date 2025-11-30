@@ -80,61 +80,61 @@ export function ProjectDetail() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Button
         variant="ghost"
         onClick={() => navigate('/projects')}
         className="text-slate-600 hover:text-slate-900"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Projects
+        <span className="text-sm sm:text-base">Back to Projects</span>
       </Button>
 
       <div className="bg-white rounded-lg border border-slate-200">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-slate-900">{project.title}</h1>
-                <Badge className={getStatusColor(project.status)}>
+        <div className="p-4 sm:p-6 border-b border-slate-200">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:justify-between mb-4">
+            <div className="flex-1 w-full">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 break-words">{project.title}</h1>
+                <Badge className={`${getStatusColor(project.status)} text-xs sm:text-sm`}>
                   {project.status}
                 </Badge>
-                <Badge className={getPhaseColor(project.phase)}>
+                <Badge className={`${getPhaseColor(project.phase)} text-xs sm:text-sm`}>
                   {project.phase}
                 </Badge>
               </div>
-              <p className="text-slate-600">{project.type}</p>
+              <p className="text-sm sm:text-base text-slate-600">{project.type}</p>
             </div>
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+              <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Edit Project
             </Button>
           </div>
 
           {client && (
-            <div className="bg-slate-50 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarFallback className="bg-blue-600 text-white">
+            <div className="bg-slate-50 rounded-lg p-3 sm:p-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+                  <AvatarFallback className="bg-blue-600 text-white text-sm sm:text-base">
                     {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">Client</p>
-                  <p className="text-slate-900 font-semibold">{client.name}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-slate-900">Client</p>
+                  <p className="text-sm sm:text-base text-slate-900 font-semibold truncate">{client.name}</p>
                   {client.company && (
-                    <p className="text-sm text-slate-600">{client.company}</p>
+                    <p className="text-xs sm:text-sm text-slate-600 truncate">{client.company}</p>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 self-end sm:self-auto">
                   {client.email && (
-                    <Button variant="outline" size="sm">
-                      <Mail className="w-4 h-4" />
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   )}
                   {client.phone && (
-                    <Button variant="outline" size="sm">
-                      <Phone className="w-4 h-4" />
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   )}
                 </div>
@@ -142,43 +142,43 @@ export function ProjectDetail() {
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-slate-50 rounded-lg p-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-slate-50 rounded-lg p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-1">
-                <DollarSign className="w-4 h-4 text-slate-500" />
-                <p className="text-sm text-slate-600">Budget</p>
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                <p className="text-xs sm:text-sm text-slate-600">Budget</p>
               </div>
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-sm sm:text-base md:text-lg font-semibold text-slate-900 break-all">
                 {project.budget ? `$${project.budget.toLocaleString()}` : 'Not set'}
               </p>
             </div>
 
-            <div className="bg-slate-50 rounded-lg p-4">
+            <div className="bg-slate-50 rounded-lg p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-1">
-                <Calendar className="w-4 h-4 text-slate-500" />
-                <p className="text-sm text-slate-600">Start Date</p>
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                <p className="text-xs sm:text-sm text-slate-600">Start Date</p>
               </div>
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-sm sm:text-base md:text-lg font-semibold text-slate-900">
                 {project.start_date ? format(new Date(project.start_date), 'MMM d, yyyy') : 'Not set'}
               </p>
             </div>
 
-            <div className="bg-slate-50 rounded-lg p-4">
+            <div className="bg-slate-50 rounded-lg p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-slate-500" />
-                <p className="text-sm text-slate-600">End Date</p>
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                <p className="text-xs sm:text-sm text-slate-600">End Date</p>
               </div>
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-sm sm:text-base md:text-lg font-semibold text-slate-900">
                 {project.end_date ? format(new Date(project.end_date), 'MMM d, yyyy') : 'Not set'}
               </p>
             </div>
 
-            <div className="bg-slate-50 rounded-lg p-4">
+            <div className="bg-slate-50 rounded-lg p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-1">
-                <Users className="w-4 h-4 text-slate-500" />
-                <p className="text-sm text-slate-600">Team</p>
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                <p className="text-xs sm:text-sm text-slate-600">Team</p>
               </div>
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-sm sm:text-base md:text-lg font-semibold text-slate-900">
                 {project.team_members.length} members
               </p>
             </div>
@@ -186,39 +186,41 @@ export function ProjectDetail() {
 
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-slate-700">Project Progress</p>
-              <p className="text-sm font-semibold text-slate-900">{progress}%</p>
+              <p className="text-xs sm:text-sm font-medium text-slate-700">Project Progress</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-900">{progress}%</p>
             </div>
             <Progress value={progress} className="h-2" />
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1">
               {completedTasks.length} of {projectTasks.length} tasks completed
             </p>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start border-b border-slate-200 rounded-none bg-transparent p-0 px-6">
-            <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="team" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-              Team
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-              Tasks
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-              Timeline
-            </TabsTrigger>
-            <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-              Files
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-              Notes
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="w-full min-w-max justify-start border-b border-slate-200 rounded-none bg-transparent p-0 px-4 sm:px-6">
+              <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none text-xs sm:text-sm">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="team" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none text-xs sm:text-sm">
+                Team
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none text-xs sm:text-sm">
+                Tasks
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none text-xs sm:text-sm">
+                Timeline
+              </TabsTrigger>
+              <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none text-xs sm:text-sm">
+                Files
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none text-xs sm:text-sm">
+                Notes
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <TabsContent value="overview" className="mt-0">
               <ProjectOverviewTab project={project} />
             </TabsContent>

@@ -57,39 +57,42 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <Card
-      className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+      className="p-3 sm:p-4 hover:shadow-lg transition-shadow cursor-pointer"
       onClick={() => navigate(`/projects/${project.id}`)}
     >
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
+        {/* Title and Type */}
         <div>
           <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 mb-1 line-clamp-1">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base text-slate-900 mb-1 line-clamp-2">
                 {project.title}
               </h3>
-              <p className="text-sm text-slate-600">{project.type}</p>
+              <p className="text-xs sm:text-sm text-slate-600">{project.type}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mb-3">
-            <Badge className={getStatusColor(project.status)} variant="outline">
+          {/* Badges */}
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 flex-wrap">
+            <Badge className={`${getStatusColor(project.status)} text-xs`} variant="outline">
               {project.status}
             </Badge>
-            <Badge className={getPhaseColor(project.phase)}>
+            <Badge className={`${getPhaseColor(project.phase)} text-xs`}>
               {project.phase}
             </Badge>
           </div>
         </div>
 
+        {/* Client Info */}
         {client && (
           <div className="flex items-center gap-2 py-2 border-y border-slate-100">
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
               <AvatarFallback className="bg-blue-600 text-white text-xs">
                 {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">
+              <p className="text-xs sm:text-sm font-medium text-slate-900 truncate">
                 {client.name}
               </p>
               {client.company && (
@@ -99,46 +102,49 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
         )}
 
+        {/* Progress */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-600">Progress</span>
-            <span className="text-sm font-semibold text-slate-900">{progress}%</span>
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+            <span className="text-xs sm:text-sm text-slate-600">Progress</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-900">{progress}%</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-1.5 sm:h-2" />
         </div>
 
-        <div className="flex items-center justify-between text-sm">
+        {/* Team Members */}
+        <div className="flex items-center justify-between text-xs sm:text-sm">
           {project.team_members.length > 0 ? (
             <div className="flex items-center gap-1">
               {teamMembers.map((member, index) => (
-                <Avatar key={member?.id} className="h-6 w-6 border-2 border-white" style={{ marginLeft: index > 0 ? '-8px' : '0' }}>
+                <Avatar key={member?.id} className="h-5 w-5 sm:h-6 sm:w-6 border-2 border-white" style={{ marginLeft: index > 0 ? '-8px' : '0' }}>
                   <AvatarFallback className="bg-blue-600 text-white text-xs">
                     {member?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
               ))}
               {extraMembersCount > 0 && (
-                <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-700 border-2 border-white" style={{ marginLeft: '-8px' }}>
+                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-700 border-2 border-white" style={{ marginLeft: '-8px' }}>
                   +{extraMembersCount}
                 </div>
               )}
             </div>
           ) : (
-            <span className="text-slate-400">No team assigned</span>
+            <span className="text-xs sm:text-sm text-slate-400">No team assigned</span>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-          <div className="flex items-center gap-3">
+        {/* Footer - Budget, Date, Add Task */}
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {project.budget && (
-              <div className="flex items-center gap-1 text-sm text-slate-600">
-                <DollarSign className="w-4 h-4" />
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-slate-600">
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="font-medium">{project.budget.toLocaleString()}</span>
               </div>
             )}
             {project.end_date && (
-              <div className="flex items-center gap-1 text-sm text-slate-600">
-                <Calendar className="w-4 h-4" />
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-slate-600">
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>{format(new Date(project.end_date), 'MMM d')}</span>
               </div>
             )}
@@ -146,14 +152,15 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="h-7 sm:h-8 gap-1 text-xs sm:text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 sm:px-3"
             onClick={(e) => {
               e.stopPropagation();
               setTaskDialogOpen(true);
             }}
           >
-            <Plus className="w-4 h-4" />
-            Add Task
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Add Task</span>
+            <span className="sm:hidden">Task</span>
           </Button>
         </div>
       </div>

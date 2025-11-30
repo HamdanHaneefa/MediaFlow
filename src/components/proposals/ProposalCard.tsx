@@ -151,9 +151,9 @@ export function ProposalCard({
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-slate-400" />
               <span className="font-semibold text-slate-900">
-                ${proposal.amount.toLocaleString()}
+                ${(proposal.amount || 0).toLocaleString()}
               </span>
-              <span className="text-sm text-slate-500">{proposal.currency}</span>
+              <span className="text-sm text-slate-500">{proposal.currency || 'USD'}</span>
             </div>
             <Badge variant="outline" className="text-xs">
               {proposal.type}

@@ -191,8 +191,8 @@ export function ProposalDetailsDialog({
                     <span className="text-sm font-medium text-slate-600">Amount</span>
                     <div className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4 text-slate-400" />
-                      <span className="font-semibold">${proposal.amount.toLocaleString()}</span>
-                      <span className="text-sm text-slate-500">{proposal.currency}</span>
+                      <span className="font-semibold">${(proposal.amount || 0).toLocaleString()}</span>
+                      <span className="text-sm text-slate-500">{proposal.currency || 'USD'}</span>
                     </div>
                   </div>
                   

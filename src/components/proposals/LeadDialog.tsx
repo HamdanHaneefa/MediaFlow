@@ -34,7 +34,7 @@ interface LeadFormData {
   status: LeadStatus;
   source: LeadSource;
   priority: LeadPriority;
-  estimated_value: number;
+  budget: number;
   estimated_close_date: string;
   notes: string;
   tags: string;
@@ -71,7 +71,7 @@ export function LeadDialog({
       status: 'New',
       source: 'Other',
       priority: 'Medium',
-      estimated_value: 0,
+      budget: 0,
       estimated_close_date: '',
       notes: '',
       tags: '',
@@ -94,7 +94,7 @@ export function LeadDialog({
         status: lead.status,
         source: lead.source,
         priority: lead.priority,
-        estimated_value: lead.estimated_value || 0,
+        budget: lead.budget || 0,
         estimated_close_date: lead.estimated_close_date || '',
         notes: lead.notes || '',
         tags: lead.tags.join(', '),
@@ -110,7 +110,7 @@ export function LeadDialog({
         status: 'New',
         source: 'Other',
         priority: 'Medium',
-        estimated_value: 0,
+        budget: 0,
         estimated_close_date: '',
         notes: '',
         tags: '',
@@ -130,7 +130,7 @@ export function LeadDialog({
         status: data.status,
         source: data.source,
         priority: data.priority,
-        estimated_value: data.estimated_value || undefined,
+        budget: data.budget || undefined,
         estimated_close_date: data.estimated_close_date || undefined,
         notes: data.notes || undefined,
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
@@ -216,8 +216,7 @@ export function LeadDialog({
                   <SelectItem value="Contacted">Contacted</SelectItem>
                   <SelectItem value="Qualified">Qualified</SelectItem>
                   <SelectItem value="Proposal Sent">Proposal Sent</SelectItem>
-                  <SelectItem value="Negotiating">Negotiating</SelectItem>
-                  <SelectItem value="Won">Won</SelectItem>
+                  <SelectItem value="Negotiation">Negotiation</SelectItem>
                   <SelectItem value="Lost">Lost</SelectItem>
                   <SelectItem value="Converted">Converted</SelectItem>
                 </SelectContent>
@@ -236,10 +235,11 @@ export function LeadDialog({
                 <SelectContent>
                   <SelectItem value="Website">Website</SelectItem>
                   <SelectItem value="Referral">Referral</SelectItem>
-                  <SelectItem value="Cold Outreach">Cold Outreach</SelectItem>
                   <SelectItem value="Social Media">Social Media</SelectItem>
+                  <SelectItem value="Email Campaign">Email Campaign</SelectItem>
+                  <SelectItem value="Cold Call">Cold Call</SelectItem>
                   <SelectItem value="Event">Event</SelectItem>
-                  <SelectItem value="Partner">Partner</SelectItem>
+                  <SelectItem value="Partnership">Partnership</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -264,12 +264,12 @@ export function LeadDialog({
             </div>
 
             <div>
-              <Label htmlFor="estimated_value">Estimated Value</Label>
+              <Label htmlFor="budget">Budget</Label>
               <Input
-                id="estimated_value"
+                id="budget"
                 type="number"
                 step="0.01"
-                {...register('estimated_value')}
+                {...register('budget')}
                 placeholder="0.00"
               />
             </div>

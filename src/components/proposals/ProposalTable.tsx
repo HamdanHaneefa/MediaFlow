@@ -121,10 +121,10 @@ export function ProposalTable({
               </TableCell>
               <TableCell onClick={() => onView(proposal)}>
                 <div className="font-medium">
-                  ${proposal.amount.toLocaleString()}
+                  ${(proposal.amount || 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {proposal.currency}
+                  {proposal.currency || 'USD'}
                 </div>
               </TableCell>
               <TableCell onClick={() => onView(proposal)}>

@@ -288,23 +288,19 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   const fetchProjectAssignments = useCallback(async () => {
     try {
       setError(null);
-      console.log('TeamContext - Fetching project assignments from database...');
       
       // Fetch all project assignments using the team API
       const assignments = await teamAPI.getAllProjectAssignments();
-      console.log('TeamContext - Raw assignments from API:', assignments);
       setProjectAssignments(assignments);
-      console.log('TeamContext - Set project assignments state:', assignments);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch project assignments');
-      console.error('TeamContext - Error fetching project assignments:', err);
+      console.error('Error fetching project assignments:', err);
     }
   }, []); // Empty dependency array since this function doesn't depend on any state
 
   const assignToProject = async (assignment: Omit<ProjectAssignment, 'id'>): Promise<ProjectAssignment | null> => {
     try {
       setError(null);
-      console.log('Saving assignment to database:', assignment);
       
       // Use the actual team API to assign member to project
       const assignmentResponse = await teamAPI.assignToProject({
@@ -316,7 +312,6 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         hourly_rate_override: assignment.hourly_rate_override,
       });
       
-      console.log('Database response:', assignmentResponse);
       
       // Convert the API response to our ProjectAssignment format
       const newAssignment: ProjectAssignment = {
@@ -333,7 +328,6 @@ export function TeamProvider({ children }: { children: ReactNode }) {
       
       // Update local state
       setProjectAssignments(prev => [...prev, newAssignment]);
-      console.log('Assignment saved to database successfully:', newAssignment);
       
       return newAssignment;
     } catch (err) {
@@ -346,14 +340,12 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   const removeFromProject = async (assignmentId: string): Promise<boolean> => {
     try {
       setError(null);
-      console.log('Removing assignment from database:', assignmentId);
       
       // Use the actual team API to remove assignment
       await teamAPI.removeAssignment(assignmentId);
       
       // Update local state
       setProjectAssignments(prev => prev.filter(a => a.id !== assignmentId));
-      console.log('Assignment removed from database successfully:', assignmentId);
       
       return true;
     } catch (err) {

@@ -19,7 +19,7 @@ export function ProjectListItem({ project }: ProjectListItemProps) {
 
   const client = project.client_id ? getContactById(project.client_id) : null;
   const projectTasks = tasks.filter(task => task.project_id === project.id);
-  const completedTasks = projectTasks.filter(task => task.status === 'Completed');
+  const completedTasks = projectTasks.filter(task => task.status === 'Done');
   const progress = projectTasks.length > 0
     ? Math.round((completedTasks.length / projectTasks.length) * 100)
     : 0;
@@ -52,48 +52,52 @@ export function ProjectListItem({ project }: ProjectListItemProps) {
 
   return (
     <div
-      className="border-b border-slate-200 py-4 hover:bg-slate-50 transition-colors cursor-pointer"
+      className="border-b border-slate-200 py-3 sm:py-4 hover:bg-slate-50 transition-colors cursor-pointer px-3 sm:px-4"
       onClick={() => navigate(`/projects/${project.id}`)}
     >
-      <div className="grid grid-cols-12 gap-4 items-center">
-        <div className="col-span-3">
-          <h3 className="font-semibold text-slate-900 mb-1">
+      <div className="grid grid-cols-12 gap-2 sm:gap-4 items-center">
+        {/* Project Title & Type */}
+        <div className="col-span-12 sm:col-span-3">
+          <h3 className="font-semibold text-sm sm:text-base text-slate-900 mb-0.5 sm:mb-1 line-clamp-1">
             {project.title}
           </h3>
-          <p className="text-sm text-slate-600">{project.type}</p>
+          <p className="text-xs sm:text-sm text-slate-600">{project.type}</p>
         </div>
 
-        <div className="col-span-2">
+        {/* Client */}
+        <div className="col-span-6 sm:col-span-2">
           {client ? (
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
                 <AvatarFallback className="bg-blue-600 text-white text-xs">
                   {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">
+                <p className="text-xs sm:text-sm font-medium text-slate-900 truncate">
                   {client.name}
                 </p>
               </div>
             </div>
           ) : (
-            <span className="text-sm text-slate-400">No client</span>
+            <span className="text-xs sm:text-sm text-slate-400">No client</span>
           )}
         </div>
 
-        <div className="col-span-2">
+        {/* Status & Phase */}
+        <div className="col-span-6 sm:col-span-2">
           <div className="flex flex-col gap-1">
-            <Badge className={getStatusColor(project.status)} variant="outline">
+            <Badge className={`${getStatusColor(project.status)} text-xs w-fit`} variant="outline">
               {project.status}
             </Badge>
-            <Badge className={getPhaseColor(project.phase)}>
+            <Badge className={`${getPhaseColor(project.phase)} text-xs w-fit`}>
               {project.phase}
             </Badge>
           </div>
         </div>
 
-        <div className="col-span-2">
+        {/* Progress */}
+        <div className="col-span-6 sm:col-span-2">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-600">Progress</span>
@@ -103,18 +107,19 @@ export function ProjectListItem({ project }: ProjectListItemProps) {
           </div>
         </div>
 
-        <div className="col-span-1">
+        {/* Team */}
+        <div className="col-span-3 sm:col-span-1">
           {project.team_members.length > 0 ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-start sm:justify-center gap-1">
               {teamMembers.slice(0, 3).map((member, index) => (
-                <Avatar key={member?.id} className="h-6 w-6 border-2 border-white" style={{ marginLeft: index > 0 ? '-8px' : '0' }}>
+                <Avatar key={member?.id} className="h-5 w-5 sm:h-6 sm:w-6 border-2 border-white" style={{ marginLeft: index > 0 ? '-6px' : '0' }}>
                   <AvatarFallback className="bg-blue-600 text-white text-xs">
                     {member?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
               ))}
               {extraMembersCount > 0 && (
-                <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-700 border-2 border-white" style={{ marginLeft: '-8px' }}>
+                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-700 border-2 border-white" style={{ marginLeft: '-6px' }}>
                   +{extraMembersCount}
                 </div>
               )}
@@ -124,17 +129,18 @@ export function ProjectListItem({ project }: ProjectListItemProps) {
           )}
         </div>
 
-        <div className="col-span-2 flex flex-col gap-1 text-sm text-slate-600">
+        {/* Budget & Deadline */}
+        <div className="col-span-3 sm:col-span-2 flex flex-col gap-0.5 sm:gap-1 text-xs sm:text-sm text-slate-600">
           {project.budget && (
             <div className="flex items-center gap-1">
-              <DollarSign className="w-4 h-4" />
-              <span className="font-medium">{project.budget.toLocaleString()}</span>
+              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="font-medium truncate">{project.budget.toLocaleString()}</span>
             </div>
           )}
           {project.end_date && (
             <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              <span>{format(new Date(project.end_date), 'MMM d, yyyy')}</span>
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">{format(new Date(project.end_date), 'MMM d, yyyy')}</span>
             </div>
           )}
         </div>

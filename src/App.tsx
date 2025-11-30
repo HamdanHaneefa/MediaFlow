@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ScrollToTop } from './components/ScrollToTop';
 import { MainLayout } from './layouts/MainLayout';
 import Login from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -21,6 +22,7 @@ import ClientDashboard from './pages/client/ClientDashboard';
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />

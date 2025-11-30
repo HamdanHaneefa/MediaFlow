@@ -81,7 +81,7 @@ export function RecentActivity({ projects, contacts, tasks }: RecentActivityProp
   });
 
   tasks
-    .filter((task) => task.status === 'Completed')
+    .filter((task) => task.status === 'Done')
     .slice(0, 3)
     .forEach((task) => {
       activities.push({
@@ -101,14 +101,14 @@ export function RecentActivity({ projects, contacts, tasks }: RecentActivityProp
   if (sortedActivities.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <FileText className="w-12 h-12 text-slate-300 mb-3" />
-            <p className="text-slate-500">No recent activity yet</p>
-            <p className="text-sm text-slate-400 mt-1">
+          <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+            <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mb-2 sm:mb-3" />
+            <p className="text-sm sm:text-base text-slate-500">No recent activity yet</p>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Activity will appear here as you work
             </p>
           </div>
@@ -119,27 +119,27 @@ export function RecentActivity({ projects, contacts, tasks }: RecentActivityProp
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+      <CardHeader className="pb-3 sm:pb-4">
+        <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="px-3 sm:px-6">
+        <div className="space-y-3 sm:space-y-4">
           {sortedActivities.map((activity) => {
             const Icon = getActivityIcon(activity.type);
             const colorClass = getActivityColor(activity.type);
 
             return (
-              <div key={activity.id} className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0`}>
-                  <Icon className="w-5 h-5" />
+              <div key={activity.id} className="flex items-start gap-2 sm:gap-4">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0`}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900 text-sm">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 text-xs sm:text-sm">
                         {activity.title}
                       </p>
-                      <p className="text-sm text-slate-600 mt-0.5 truncate">
+                      <p className="text-xs sm:text-sm text-slate-600 mt-0.5 truncate">
                         {activity.description}
                       </p>
                     </div>
@@ -152,7 +152,7 @@ export function RecentActivity({ projects, contacts, tasks }: RecentActivityProp
                             ? 'default'
                             : 'secondary'
                         }
-                        className="text-xs"
+                        className="text-xs flex-shrink-0"
                       >
                         {activity.metadata.task.priority}
                       </Badge>

@@ -58,37 +58,38 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     totalPages: 0,
   });
 
-  // Load projects from localStorage on init
+  // Load projects from database on init (don't use localStorage for initial load)
   useEffect(() => {
-    const savedProjects = localStorage.getItem('mediaflow_projects');
-    if (savedProjects) {
-      try {
-        const parsed = JSON.parse(savedProjects);
-        console.log('Loaded projects from localStorage:', parsed.length);
-        setProjects(parsed);
-      } catch (err) {
-        console.error('Failed to parse saved projects:', err);
-      }
-    }
+    // Always fetch fresh data from database on mount
+    fetchProjects();
   }, []);
 
   const fetchProjects = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching projects from database...');
       const response = await projectsAPI.getAll({ page, limit });
       const transformedProjects = response.items.map(transformProject);
       
-      console.log('Fetched projects from database:', transformedProjects.length);
       setProjects(transformedProjects);
       setPagination(response.pagination);
       
-      // Save to localStorage for persistence
+      // Save to localStorage for offline access only
       localStorage.setItem('mediaflow_projects', JSON.stringify(transformedProjects));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch projects');
-      console.error('Error fetching projects - keeping localStorage data:', err);
+      console.error('Error fetching projects:', err);
+      
+      // Only use localStorage as fallback if API fails
+      const savedProjects = localStorage.getItem('mediaflow_projects');
+      if (savedProjects) {
+        try {
+          const parsed = JSON.parse(savedProjects);
+          setProjects(parsed);
+        } catch (parseErr) {
+          console.error('Failed to parse saved projects:', parseErr);
+        }
+      }
     } finally {
       setLoading(false);
     }

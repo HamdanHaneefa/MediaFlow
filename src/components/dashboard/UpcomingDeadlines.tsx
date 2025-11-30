@@ -56,7 +56,7 @@ function getInitials(name: string): string {
 
 export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
   const tasksWithDueDates = tasks
-    .filter((task) => task.due_date && task.status !== 'Completed')
+    .filter((task) => task.due_date && task.status !== 'Done')
     .sort((a, b) => {
       if (!a.due_date || !b.due_date) return 0;
       return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
@@ -72,14 +72,14 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
   if (tasksWithDueDates.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Deadlines</CardTitle>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">Upcoming Deadlines</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Calendar className="w-12 h-12 text-slate-300 mb-3" />
-            <p className="text-slate-500 font-medium">No upcoming deadlines</p>
-            <p className="text-sm text-slate-400 mt-1">
+          <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+            <Calendar className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mb-2 sm:mb-3" />
+            <p className="text-sm sm:text-base text-slate-500 font-medium">No upcoming deadlines</p>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Tasks with due dates will appear here
             </p>
           </div>
@@ -94,8 +94,8 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="pb-3 sm:pb-4">
+        <CardTitle className="flex items-center justify-between text-base sm:text-lg">
           <span>Upcoming Deadlines</span>
           {overdueCount > 0 && (
             <Badge variant="destructive" className="text-xs">
@@ -104,8 +104,8 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="px-3 sm:px-6">
+        <div className="space-y-2 sm:space-y-3">
           {tasksWithDueDates.map((task) => {
             const assignedContact = getAssignedContact(task.id);
             const dateInfo = task.due_date ? getDateLabel(task.due_date) : null;
@@ -113,11 +113,11 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
             return (
               <div
                 key={task.id}
-                className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
+                className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h4 className="font-medium text-slate-900 text-sm leading-tight">
+                  <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
+                    <h4 className="font-medium text-slate-900 text-xs sm:text-sm leading-tight">
                       {task.title}
                     </h4>
                     <Badge
@@ -128,11 +128,11 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     {dateInfo && (
                       <div
                         className={cn(
-                          'flex items-center gap-1 px-2 py-1 rounded text-xs font-medium',
+                          'flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs font-medium',
                           dateInfo.bgColor,
                           dateInfo.color
                         )}
@@ -154,13 +154,13 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
                     )}
 
                     {assignedContact && (
-                      <div className="flex items-center gap-1.5">
-                        <Avatar className="w-5 h-5">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Avatar className="w-4 h-4 sm:w-5 sm:h-5">
                           <AvatarFallback className="bg-slate-200 text-slate-700 text-xs">
                             {getInitials(assignedContact.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-slate-600">
+                        <span className="text-xs text-slate-600 hidden sm:inline">
                           {assignedContact.name}
                         </span>
                       </div>
@@ -172,10 +172,10 @@ export function UpcomingDeadlines({ tasks, contacts }: UpcomingDeadlinesProps) {
           })}
         </div>
 
-        {tasks.filter((t) => t.due_date && t.status !== 'Completed').length > 5 && (
-          <div className="mt-4 text-center">
-            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all tasks ({tasks.filter((t) => t.due_date && t.status !== 'Completed').length})
+        {tasks.filter((t) => t.due_date && t.status !== 'Done').length > 5 && (
+          <div className="mt-3 sm:mt-4 text-center">
+            <button className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium">
+              View all tasks ({tasks.filter((t) => t.due_date && t.status !== 'Done').length})
             </button>
           </div>
         )}

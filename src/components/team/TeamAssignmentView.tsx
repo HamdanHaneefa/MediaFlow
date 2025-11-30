@@ -31,15 +31,9 @@ export function TeamAssignmentView() {
   const { projects = [] } = useProjects();
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string>('');
-  
-  // Debug logging
-  console.log('TeamAssignmentView - teamMembers:', teamMembers);
-  console.log('TeamAssignmentView - projectAssignments:', projectAssignments);
-  console.log('TeamAssignmentView - projects:', projects);
 
   // Ensure we have the latest assignment data when component mounts
   useEffect(() => {
-    console.log('TeamAssignmentView mounted - fetching project assignments');
     fetchProjectAssignments();
   }, [fetchProjectAssignments]); // Now fetchProjectAssignments is memoized with useCallback
 
@@ -162,12 +156,11 @@ export function TeamAssignmentView() {
     if (!projectAssignments || !teamMembers) return [];
     
     const assignments = projectAssignments.filter(a => a.project_id === projectId);
-    console.log(`TeamAssignmentView - assignments for project ${projectId}:`, assignments);
     
     return assignments.map(assignment => {
       const member = teamMembers.find(m => m.id === assignment.team_member_id);
       return member ? { ...member, assignment } : null;
-    }).filter(Boolean) as (TeamMember & { assignment: typeof projectAssignments[0] })[];
+    }).filter(Boolean) as unknown as (TeamMember & { assignment: typeof projectAssignments[0] })[];
   };
 
   return (

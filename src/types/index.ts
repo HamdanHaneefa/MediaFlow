@@ -593,8 +593,8 @@ export interface ProjectFinancialSummary {
 }
 
 // Lead Types
-export type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Proposal Sent' | 'Negotiating' | 'Won' | 'Lost' | 'Converted';
-export type LeadSource = 'Website' | 'Referral' | 'Cold Outreach' | 'Social Media' | 'Event' | 'Partner' | 'Other';
+export type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Proposal Sent' | 'Negotiation' | 'Lost' | 'Converted';
+export type LeadSource = 'Website' | 'Referral' | 'Social Media' | 'Email Campaign' | 'Cold Call' | 'Event' | 'Partnership' | 'Other';
 export type LeadPriority = 'Low' | 'Medium' | 'High' | 'Hot';
 
 export interface Lead {
@@ -606,7 +606,7 @@ export interface Lead {
   status: LeadStatus;
   source: LeadSource;
   priority: LeadPriority;
-  estimated_value?: number;
+  budget?: number;
   estimated_close_date?: string;
   notes?: string;
   tags: string[];

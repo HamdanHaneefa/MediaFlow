@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { MobileBottomNav } from '../components/MobileBottomNav';
-import { QuickActions } from '../components/QuickActions';
 
 export function MainLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,7 +21,6 @@ export function MainLayout() {
           <Outlet />
         </main>
         <MobileBottomNav />
-        <QuickActions />
       </div>
     </div>
   );

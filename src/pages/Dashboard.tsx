@@ -43,37 +43,44 @@ export function Dashboard() {
       t.due_date &&
       isPast(parseISO(t.due_date)) &&
       !isToday(parseISO(t.due_date)) &&
-      t.status !== 'Completed'
+      t.status !== 'Done'
   ).length;
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <Skeleton className="h-9 w-48 mb-2" />
-          <Skeleton className="h-5 w-96" />
+          <Skeleton className="h-8 sm:h-9 w-40 sm:w-48 mb-2" />
+          <Skeleton className="h-4 sm:h-5 w-72 sm:w-96" />
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32" />
+            <Skeleton key={i} className="h-28 sm:h-32" />
           ))}
         </div>
-        <Skeleton className="h-48" />
-        <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-96" />
-          <Skeleton className="h-96" />
+        <Skeleton className="h-40 sm:h-48" />
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+          <Skeleton className="h-80 sm:h-96" />
+          <Skeleton className="h-80 sm:h-96" />
         </div>
+        <Skeleton className="h-96 sm:h-[32rem]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Dashboard</h2>
-        <p className="text-sm md:text-base text-slate-600 mt-1">Welcome back! Here's your production overview.</p>
+    <div className="space-y-4 sm:space-y-6 pb-6">
+      {/* Header */}
+      <div className="px-1 sm:px-0">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+          Dashboard
+        </h2>
+        <p className="text-xs sm:text-sm md:text-base text-slate-600 mt-1">
+          Welcome back! Here's your production overview.
+        </p>
       </div>
 
+      {/* Metrics Cards */}
       <MetricsCards
         activeProjects={activeProjects}
         totalClients={totalClients}
@@ -83,13 +90,16 @@ export function Dashboard() {
         overdueTasks={overdueTasks}
       />
 
+      {/* Quick Actions */}
       <QuickActions />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Recent Activity & Upcoming Deadlines */}
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <RecentActivity projects={projects} contacts={contacts} tasks={tasks} />
         <UpcomingDeadlines tasks={tasks} contacts={contacts} />
       </div>
 
+      {/* Project Status Overview */}
       <ProjectStatusOverview projects={projects} />
     </div>
   );
