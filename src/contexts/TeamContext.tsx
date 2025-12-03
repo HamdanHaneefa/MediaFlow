@@ -13,6 +13,7 @@ import {
   type UpdateTeamData
 } from '@/services/api';
 import { ProjectAssignment } from '@/types';
+import { useAuth } from './AuthContext';
 
 interface TeamContextType {
   teamMembers: TeamUser[];
@@ -65,6 +66,8 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     total: 0,
     totalPages: 0,
   });
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const fetchTeamMembers = useCallback(async (params?: {
     page?: number;
@@ -360,11 +363,13 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    console.log('TeamContext useEffect triggered - fetching initial data...');
-    fetchTeamMembers();
-    fetchTeams();
-    fetchProjectAssignments();
-  }, [fetchTeamMembers, fetchTeams, fetchProjectAssignments]); // All functions are now memoized
+    // Only fetch initial data if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchTeamMembers();
+      fetchTeams();
+      fetchProjectAssignments();
+    }
+  }, [isAuthenticated, authLoading, fetchTeamMembers, fetchTeams, fetchProjectAssignments]);
 
   return (
     <TeamContext.Provider

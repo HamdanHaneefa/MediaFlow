@@ -27,36 +27,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = localStorage.getItem('admin_access_token');
         
-        console.log('🔍 Auth Check - Token found:', !!token);
-        
         if (token) {
           try {
             const currentUser = await authAPI.getCurrentUser();
-            console.log('✅ User authenticated:', currentUser);
             setUser(currentUser);
           } catch (apiError: any) {
-            console.error('❌ getCurrentUser failed:', apiError);
+            console.error('Authentication check failed:', apiError);
             
             // Only clear tokens if it's an authentication error (401)
             if (apiError.response?.status === 401) {
-              console.log('🔴 Invalid token - clearing localStorage');
+              console.log('Token invalid - clearing stored credentials');
               localStorage.removeItem('admin_access_token');
               localStorage.removeItem('admin_refresh_token');
               localStorage.removeItem('admin_user');
             } else {
               // Network error or server error - keep the token!
-              console.log('⚠️ API error but keeping token (might be network issue)');
+              console.log('Network error during auth check - keeping token');
               
               // Try to load user from localStorage as fallback
               const storedUser = localStorage.getItem('admin_user');
               if (storedUser) {
                 setUser(JSON.parse(storedUser));
-                console.log('📦 Loaded user from localStorage cache');
               }
             }
           }
         } else {
-          console.log('❌ No token found in localStorage');
+          // No token found - user not logged in
         }
       } catch (err) {
         console.error('❌ Auth check error:', err);

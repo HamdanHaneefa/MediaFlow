@@ -6,6 +6,7 @@ import {
   type UpdateTaskData,
   type TaskStats
 } from '@/services/api';
+import { useAuth } from './AuthContext';
 
 interface TasksContextType {
   tasks: Task[];
@@ -39,6 +40,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     total: 0,
     totalPages: 0,
   });
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const fetchTasks = async (params?: {
     page?: number;
@@ -203,8 +206,11 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    // Only fetch tasks if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchTasks();
+    }
+  }, [isAuthenticated, authLoading]);
 
   return (
     <TasksContext.Provider

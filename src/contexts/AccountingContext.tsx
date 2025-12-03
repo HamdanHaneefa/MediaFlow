@@ -11,6 +11,7 @@ import {
   type AccountingStats,
   type FinancialReport
 } from '@/services/api';
+import { useAuth } from './AuthContext';
 
 interface AccountingContextType {
   expenses: Expense[];
@@ -94,6 +95,8 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     income: { page: 1, limit: 10, total: 0, totalPages: 0 },
     invoices: { page: 1, limit: 10, total: 0, totalPages: 0 },
   });
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   // Filtered data
   const filteredExpenses = expenses.filter(expense => {
@@ -413,10 +416,13 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
 
   // Initialize data on mount
   useEffect(() => {
-    fetchExpenses();
-    fetchIncome();
-    fetchInvoices();
-  }, [fetchExpenses, fetchIncome, fetchInvoices]);
+    // Only fetch data if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchExpenses();
+      fetchIncome();
+      fetchInvoices();
+    }
+  }, [isAuthenticated, authLoading, fetchExpenses, fetchIncome, fetchInvoices]);
 
   const value: AccountingContextType = {
     expenses,

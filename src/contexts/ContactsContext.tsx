@@ -6,6 +6,7 @@ import {
 } from '@/services/api';
 import { type Contact } from '@/types';
 import { mockContacts } from '@/data/mockData';
+import { useAuth } from './AuthContext';
 
 // Transform API Contact to Frontend Contact type
 const transformContact = (apiContact: APIContact): Contact => {
@@ -51,32 +52,28 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     totalPages: 0,
   });
 
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
   const fetchContacts = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       setError(null);
       
       // Try to fetch from API first
-      console.log('Attempting to fetch contacts from database...');
       const response = await contactsAPI.getAll({ page, limit });
       const transformedContacts = response.items.map(transformContact);
       
-      console.log('Fetched contacts from API:', transformedContacts.length);
-      
       // If we have contacts from API, use them
       if (transformedContacts.length > 0) {
-        console.log('Using database contacts');
         setContacts(transformedContacts);
         setPagination(response.pagination);
       } else {
         // If no contacts from API, use mock data as fallback
-        console.log('No contacts from database, using mock data as fallback');
         setContacts(mockContacts);
         setPagination({ page: 1, limit: mockContacts.length, total: mockContacts.length, totalPages: 1 });
         setError('No contacts in database - using demo data');
       }
     } catch (err) {
-      console.log('Database API failed, using mock data:', err);
       // Fallback to mock data on API error
       setContacts(mockContacts);
       setPagination({ page: 1, limit: mockContacts.length, total: mockContacts.length, totalPages: 1 });
@@ -91,15 +88,12 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      console.log('Searching contacts in database for:', query);
       const response = await contactsAPI.search(query, { page: 1, limit: 50 });
       const transformedContacts = response.items.map(transformContact);
       
-      console.log('Search results from database:', transformedContacts.length);
       setContacts(transformedContacts);
       setPagination(response.pagination);
     } catch (err) {
-      console.log('Search failed, filtering mock data instead:', err);
       // Fallback to filtering mock data
       const filteredMockContacts = mockContacts.filter(contact =>
         contact.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -180,8 +174,11 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchContacts();
-  }, []);
+    // Only fetch data if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchContacts();
+    }
+  }, [isAuthenticated, authLoading]);
 
   return (
     <ContactsContext.Provider

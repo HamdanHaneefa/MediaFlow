@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import eventsAPI from '@/services/api/events';
 import type { Event, CreateEventData, UpdateEventData, EventStats } from '@/services/api/events';
+import { useAuth } from './AuthContext';
 
 interface EventsContextType {
   events: Event[];
@@ -35,19 +36,17 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false); // Set to false since we're not loading
   const [error, setError] = useState<string | null>(null);
 
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('EventsContext.fetchEvents - Starting fetch...');
-      
       // Use the new backend API
       const response = await eventsAPI.getAll();
-      console.log('EventsContext.fetchEvents - Response:', response);
       
       setEvents(response.items || response || []); // Handle both paginated and direct array responses
-      console.log('EventsContext.fetchEvents - Events set:', response.items?.length || response?.length || 0);
       
     } catch (err: unknown) {
       console.error('EventsContext.fetchEvents - Full error:', err);
@@ -67,8 +66,6 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       
-      console.log('EventsContext - Input event object:', event);
-      
       // Create event data object that matches the API interface
       const eventData: CreateEventData = {
         title: event.title,
@@ -85,8 +82,6 @@ export function EventsProvider({ children }: { children: ReactNode }) {
         reminder: event.reminder,
         status: event.status
       };
-
-      console.log('EventsContext - API payload:', eventData);
 
       const newEvent = await eventsAPI.create(eventData);
       setEvents(prev => [newEvent, ...prev]);
@@ -220,8 +215,11 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    // Only fetch events if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchEvents();
+    }
+  }, [isAuthenticated, authLoading]);
 
   return (
     <EventsContext.Provider

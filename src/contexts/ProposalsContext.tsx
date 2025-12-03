@@ -10,6 +10,7 @@ import {
   type Contact
 } from '@/services/api';
 import type { UpdateLeadData, UpdateProposalData } from '@/services/api/proposals';
+import { useAuth } from './AuthContext';
 
 interface ProposalsContextType {
   // Lead management
@@ -61,6 +62,8 @@ export function ProposalsProvider({ children }: { children: ReactNode }) {
     leads: { page: 1, limit: 10, total: 0, totalPages: 0 },
     proposals: { page: 1, limit: 10, total: 0, totalPages: 0 },
   });
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   // Lead management
   const fetchLeads = async (params?: { page?: number; limit?: number; search?: string; status?: string; source?: string; assigned_to?: string }) => {
@@ -329,9 +332,12 @@ export function ProposalsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchLeads();
-    fetchProposals();
-  }, []);
+    // Only fetch data if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchLeads();
+      fetchProposals();
+    }
+  }, [isAuthenticated, authLoading]);
 
   return (
     <ProposalsContext.Provider

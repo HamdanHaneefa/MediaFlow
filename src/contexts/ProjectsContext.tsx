@@ -6,6 +6,7 @@ import {
   type ProjectStats
 } from '@/services/api';
 import { type Project } from '@/types';
+import { useAuth } from './AuthContext';
 
 interface ProjectsContextType {
   projects: Project[];
@@ -57,11 +58,15 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     totalPages: 0,
   });
 
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
   // Load projects from database on init (don't use localStorage for initial load)
   useEffect(() => {
-    // Always fetch fresh data from database on mount
-    fetchProjects();
-  }, []);
+    // Only fetch fresh data from database if user is authenticated and auth check is complete
+    if (isAuthenticated && !authLoading) {
+      fetchProjects();
+    }
+  }, [isAuthenticated, authLoading]);
 
   const fetchProjects = async (page = 1, limit = 10) => {
     try {
@@ -243,10 +248,6 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       return null;
     }
   };
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   return (
     <ProjectsContext.Provider
