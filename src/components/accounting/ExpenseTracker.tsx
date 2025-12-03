@@ -25,7 +25,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useAccounting } from '../../contexts/AccountingContext';
-import { ExpenseCategory, ExpenseStatus, Expense } from '../../types';
+import type { ExpenseCategory, ExpenseStatus, Expense } from '@/services/api/accounting';
 import { format } from 'date-fns';
 import ExpenseDetailsDialog from './ExpenseDetailsDialog';
 

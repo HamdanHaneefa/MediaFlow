@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, X } from 'lucide-react';
 import { useAccounting } from '../../contexts/AccountingContext';
-import { ExpenseCategory, ExpenseStatus, Expense } from '../../types';
+import { Expense, ExpenseStatus } from '@/services/api/accounting';
+
+type ExpenseCategory = 'equipment' | 'software' | 'travel' | 'marketing' | 'office' | 'utilities' | 'payroll' | 'other';
 
 interface ExpenseDialogProps {
   open: boolean;
@@ -22,7 +24,7 @@ export default function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDi
     title: '',
     description: '',
     amount: '',
-    category: '' as ExpenseCategory,
+    category: 'other' as ExpenseCategory,
     expense_date: new Date().toISOString().split('T')[0],
     vendor: '',
     status: 'Draft' as ExpenseStatus,
@@ -39,7 +41,7 @@ export default function ExpenseDialog({ open, onOpenChange, expense }: ExpenseDi
         title: expense.title || '',
         description: expense.description || '',
         amount: expense.amount?.toString() || '',
-        category: expense.category || '' as ExpenseCategory,
+        category: (expense.category as ExpenseCategory) || 'other',
         expense_date: expense.expense_date || new Date().toISOString().split('T')[0],
         vendor: expense.vendor || '',
         status: expense.status || 'Draft' as ExpenseStatus,

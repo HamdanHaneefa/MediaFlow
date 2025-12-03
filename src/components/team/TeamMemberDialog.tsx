@@ -39,7 +39,7 @@ const teamRoles: TeamRole[] = [
 const statusOptions: TeamMemberStatus[] = ['Active', 'Inactive', 'On Leave', 'Terminated'];
 
 export function TeamMemberDialog({ open, onClose, editingMemberId }: TeamMemberDialogProps) {
-  const { teamMembers, createTeamMember, updateTeamMember, getTeamMemberById } = useTeam();
+  const { createTeamMember, updateTeamMember, getTeamMemberById } = useTeam();
   
   const editingMember = editingMemberId 
     ? getTeamMemberById(editingMemberId)
@@ -156,7 +156,14 @@ export function TeamMemberDialog({ open, onClose, editingMemberId }: TeamMemberD
     
     if (editingMember) {
       // For update, use UpdateUserData format
-      const updateData = {
+      const updateData: {
+        first_name: string;
+        last_name: string;
+        phone?: string;
+        bio?: string;
+        role?: 'admin' | 'manager' | 'member' | 'viewer' | 'Admin' | 'Manager' | 'Staff';
+        status?: 'active' | 'inactive';
+      } = {
         first_name: firstName,
         last_name: lastName,
         phone: formData.phone || undefined,

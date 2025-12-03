@@ -6,11 +6,15 @@ export interface Lead {
   id: string;
   first_name: string;
   last_name: string;
+  name: string;
   email: string;
   phone?: string;
   company?: string;
   source: string;
-  status: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Negotiation' | 'Won' | 'Lost';
+  status: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Proposal Sent' | 'Negotiation' | 'Won' | 'Lost' | 'Converted';
+  priority: 'Low' | 'Medium' | 'High';
+  tags: string[];
+  budget?: number;
   estimated_value?: number;
   notes?: string;
   assigned_to?: string;
@@ -27,10 +31,15 @@ export interface Proposal {
   id: string;
   proposal_number: string;
   title: string;
+  description?: string;
   client_id: string;
   lead_id?: string;
   amount: number;
-  status: 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
+  type: 'Standard' | 'Custom' | 'Quick Quote' | 'Retainer' | 'Package Deal';
+  currency: string;
+  assigned_team_members: string[];
+  version: number;
+  status: 'Draft' | 'Sent' | 'Viewed' | 'Accepted' | 'Rejected' | 'Expired' | 'Cancelled';
   valid_until: string;
   content?: string;
   terms?: string;
@@ -62,13 +71,30 @@ export interface CreateLeadData {
   phone?: string;
   company?: string;
   source: string;
-  status?: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Negotiation' | 'Won' | 'Lost';
+  status?: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Proposal Sent' | 'Negotiation' | 'Won' | 'Lost';
+  priority?: 'Low' | 'Medium' | 'High';
+  tags?: string[];
+  budget?: number;
   estimated_value?: number;
   notes?: string;
   assigned_to?: string;
 }
 
-export interface UpdateLeadData extends Partial<CreateLeadData> {}
+export interface UpdateLeadData {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  source?: string;
+  status?: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Proposal Sent' | 'Negotiation' | 'Won' | 'Lost' | 'Converted';
+  priority?: 'Low' | 'Medium' | 'High';
+  tags?: string[];
+  budget?: number;
+  estimated_value?: number;
+  notes?: string;
+  assigned_to?: string;
+}
 
 export interface CreateProposalData {
   title: string;
@@ -78,13 +104,13 @@ export interface CreateProposalData {
   valid_until: string;
   content?: string;
   terms?: string;
-  sections: Omit<ProposalSection, 'id' | 'proposal_id'>[];
+  sections?: Omit<ProposalSection, 'id' | 'proposal_id'>[];
 }
 
 export interface UpdateProposalData {
   title?: string;
   amount?: number;
-  status?: 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
+  status?: 'Draft' | 'Sent' | 'Viewed' | 'Accepted' | 'Rejected' | 'Expired' | 'Cancelled';
   valid_until?: string;
   content?: string;
   terms?: string;

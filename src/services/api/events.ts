@@ -14,20 +14,25 @@ export interface EventReminder {
   enabled: boolean;
 }
 
+export type EventType = 'Shoot' | 'Meeting' | 'Deadline' | 'Milestone' | 'Delivery' | string;
+
 export interface Event {
   id: string;
   title: string;
   description?: string;
-  event_type: string;
+  event_type: EventType;
   start_time: string;
   end_time: string;
   location?: string;
+  location_id?: string;
   project_id?: string;
   attendees: string[];
+  equipment_needed?: string[];
   color?: string;
   is_all_day: boolean;
   recurrence?: EventRecurrence;
   reminder?: EventReminder;
+  notes?: string;
   status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled';
   created_at: string;
   updated_at: string;
@@ -123,9 +128,11 @@ class EventsAPI {
       const response = await adminApiClient.get(url);
       console.log('EventsAPI.getAll - Response:', response);
       return response.data.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('EventsAPI.getAll - Error:', error);
-      console.error('EventsAPI.getAll - Error response:', error.response);
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('EventsAPI.getAll - Error response:', (error as { response: unknown }).response);
+      }
       throw error;
     }
   }

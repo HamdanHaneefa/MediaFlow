@@ -75,16 +75,16 @@ export function EventDialogEnhanced({
   
   // Temporary mock data for disabled contexts
   interface MockLocation { id: string; name: string; }
-  interface MockEquipment { id: string; name: string; type: string; }
+  interface MockEquipment { id: string; name: string; type: string; category: string; status: string; }
   
   const locations: MockLocation[] = [];
   const equipment: MockEquipment[] = [];
-  const createBooking = async () => null;
-  const checkEquipmentConflicts = () => [];
-  const getAvailableEquipment = () => [];
-  const checkCrewAvailability = () => Promise.resolve([]);
+  const createBooking = async (_booking: { equipment_id: string; event_id?: string; start_time: string; end_time: string; status: string; notes?: string }) => null;
+  const checkEquipmentConflicts = (_equipId: string, _start: string, _end: string, _excludeEventId?: string) => [] as Event[];
+  const getAvailableEquipment = (_start: string, _end: string) => [] as MockEquipment[];
+  const checkCrewAvailability = (_crewId: string, _startDate: string, _endDate: string) => Promise.resolve({ isAvailable: true, status: 'Available' });
   // Return all contact IDs as available crew for better UX during development
-  const getAvailableCrewForDateRange = () => contacts.map(c => c.id);
+  const getAvailableCrewForDateRange = (_startDate: string, _endDate: string) => contacts.map(c => c.id);
   
   const isEditing = !!event;
 
@@ -162,37 +162,40 @@ export function EventDialogEnhanced({
   }, [event, defaultDate, defaultTime, defaultProjectId, open]);
 
   useEffect(() => {
-    if (formData.start_time && formData.end_time) {
-      const attendeeConflicts = checkConflicts(
-        formData.start_time,
-        formData.end_time,
-        selectedAttendees,
-        event?.id
-      );
-      setConflicts(attendeeConflicts);
+    const checkAllConflicts = async () => {
+      if (formData.start_time && formData.end_time) {
+        const attendeeConflicts = checkConflicts(
+          formData.start_time,
+          formData.end_time,
+          selectedAttendees,
+          event?.id
+        );
+        setConflicts(attendeeConflicts);
 
-      const crewConflictMap = new Map();
-      selectedCrew.forEach((crewId) => {
-        const result = checkCrewAvailability(crewId, formData.start_time.split('T')[0], formData.end_time.split('T')[0]);
-        if (!result.isAvailable || result.status === 'Tentative') {
-          crewConflictMap.set(crewId, result);
+        const crewConflictMap = new Map();
+        for (const crewId of selectedCrew) {
+          const result = await checkCrewAvailability(crewId, formData.start_time.split('T')[0], formData.end_time.split('T')[0]);
+          if (!result.isAvailable || result.status === 'Tentative') {
+            crewConflictMap.set(crewId, result);
+          }
         }
-      });
-      setCrewConflicts(crewConflictMap);
+        setCrewConflicts(crewConflictMap);
 
-      const equipmentConflictMap = new Map();
-      selectedEquipment.forEach((equipId) => {
-        const conflicts = checkEquipmentConflicts(equipId, formData.start_time, formData.end_time, event?.id);
-        if (conflicts.length > 0) {
-          equipmentConflictMap.set(equipId, conflicts);
-        }
-      });
-      setEquipmentConflicts(equipmentConflictMap);
-    } else {
-      setConflicts([]);
-      setCrewConflicts(new Map());
-      setEquipmentConflicts(new Map());
-    }
+        const equipmentConflictMap = new Map();
+        selectedEquipment.forEach((equipId) => {
+          const conflicts = checkEquipmentConflicts(equipId, formData.start_time, formData.end_time, event?.id);
+          if (conflicts.length > 0) {
+            equipmentConflictMap.set(equipId, conflicts);
+          }
+        });
+        setEquipmentConflicts(equipmentConflictMap);
+      } else {
+        setConflicts([]);
+        setCrewConflicts(new Map());
+        setEquipmentConflicts(new Map());
+      }
+    };
+    checkAllConflicts();
   }, [formData.start_time, formData.end_time, selectedAttendees, selectedCrew, selectedEquipment, event?.id, checkConflicts]);
 
   const handleSubmit = async (e: React.FormEvent) => {

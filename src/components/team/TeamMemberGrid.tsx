@@ -22,16 +22,35 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { TeamMember, TeamInvitation } from '@/types';
+import type { User as TeamUser } from '@/services/api/auth';
 import { useTeam } from '@/contexts/TeamContext';
 import { formatDistanceToNow } from 'date-fns';
 
+// Accept either TeamMember or TeamUser (API type)
+type TeamMemberType = TeamMember | (TeamUser & {
+  hourly_rate?: number;
+  assigned_projects?: string[];
+  skills?: string[];
+  permissions?: TeamMember['permissions'];
+  status?: string;
+});
+type TeamInvitationType = TeamInvitation | { 
+  id: string; 
+  email: string; 
+  role: string; 
+  status: string; 
+  created_at: string;
+  expires_at?: string;
+  message?: string;
+};
+
 interface TeamMemberGridProps {
-  teamMembers: TeamMember[];
-  invitations: TeamInvitation[];
+  teamMembers: TeamMemberType[];
+  invitations: TeamInvitationType[];
   onEditMember: (memberId: string) => void;
 }
 
-const roleColors = {
+const roleColors: Record<string, string> = {
   'Owner': 'bg-purple-100 text-purple-800',
   'Manager': 'bg-blue-100 text-blue-800',
   'Producer': 'bg-green-100 text-green-800',
@@ -41,9 +60,14 @@ const roleColors = {
   'Audio Engineer': 'bg-indigo-100 text-indigo-800',
   'Assistant': 'bg-gray-100 text-gray-800',
   'Freelancer': 'bg-red-100 text-red-800',
+  'admin': 'bg-purple-100 text-purple-800',
+  'manager': 'bg-blue-100 text-blue-800',
+  'member': 'bg-gray-100 text-gray-800',
+  'Admin': 'bg-purple-100 text-purple-800',
+  'Staff': 'bg-gray-100 text-gray-800',
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   'Active': 'bg-green-100 text-green-800',
   'Inactive': 'bg-gray-100 text-gray-800',
   'On Leave': 'bg-yellow-100 text-yellow-800',
@@ -68,23 +92,26 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
     }
   };
 
-  const getInitials = (member: any) => {
+  const getInitials = (member: TeamMemberType) => {
     // Handle API format (first_name, last_name) or legacy format (name)
-    const name = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
+    const m = member as unknown as Record<string, unknown>;
+    const name = (m.name as string) || `${(m.first_name as string) || ''} ${(m.last_name as string) || ''}`.trim();
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
   };
 
-  const getFullName = (member: any) => {
+  const getFullName = (member: TeamMemberType) => {
     // Handle API format (first_name, last_name) or legacy format (name)
-    return member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
+    const m = member as unknown as Record<string, unknown>;
+    return (m.name as string) || `${(m.first_name as string) || ''} ${(m.last_name as string) || ''}`.trim();
   };
 
-  const getPermissionLevel = (member: TeamMember): string => {
-    if (!member.permissions || typeof member.permissions !== 'object') {
+  const getPermissionLevel = (member: TeamMemberType): string => {
+    const m = member as TeamMemberType;
+    if (!m.permissions || typeof m.permissions !== 'object') {
       return 'View Only';
     }
     
-    const permissions = member.permissions;
+    const permissions = m.permissions;
     const trueCount = Object.values(permissions).filter(Boolean).length;
     
     if (trueCount >= 6) return 'Full Access';
@@ -104,7 +131,7 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={member.avatar_url || (member as any).avatar || undefined} alt={getFullName(member)} />
+                      <AvatarImage src={member.avatar_url || (member as unknown as { avatar?: string }).avatar || undefined} alt={getFullName(member)} />
                       <AvatarFallback>{getInitials(member)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
@@ -297,7 +324,7 @@ export function TeamMemberGrid({ teamMembers, invitations, onEditMember }: TeamM
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">Expires</span>
                       <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(invitation.expires_at), { addSuffix: true })}
+                        {invitation.expires_at ? formatDistanceToNow(new Date(invitation.expires_at), { addSuffix: true }) : 'N/A'}
                       </span>
                     </div>
                   </div>

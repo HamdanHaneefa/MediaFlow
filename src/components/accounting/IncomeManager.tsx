@@ -24,7 +24,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useAccounting } from '../../contexts/AccountingContext';
-import { IncomeStatus, Income } from '../../types';
+import type { Income, IncomeStatus } from '@/services/api/accounting';
 import { format } from 'date-fns';
 import IncomeDetailsDialog from './IncomeDetailsDialog';
 

@@ -236,7 +236,7 @@ export async function seedDatabase() {
       {
         title: 'Color grading session',
         description: 'Final color grading pass for all scenes. Client review scheduled.',
-        status: 'In Review',
+        status: 'Review',
         project_id: insertedProjects[2]?.id,
         assigned_to: freelancers[1]?.id,
         due_date: '2025-10-25',
@@ -256,7 +256,7 @@ export async function seedDatabase() {
       {
         title: 'Client mood board presentation',
         description: 'Create and present visual direction mood board for approval.',
-        status: 'Completed',
+        status: 'Done',
         project_id: insertedProjects[1]?.id,
         assigned_to: freelancers[0]?.id,
         due_date: '2025-10-15',

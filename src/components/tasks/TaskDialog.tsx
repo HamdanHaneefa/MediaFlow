@@ -69,7 +69,7 @@ export function TaskDialog({ open, onOpenChange, task, projectId }: TaskDialogPr
         project_id: task.project_id || '',
         assigned_to: task.assigned_to || 'unassigned',
         priority: task.priority,
-        type: task.type,
+        type: task.type || 'Creative',
       });
       if (task.due_date) setDueDate(new Date(task.due_date));
     } else {

@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   projectsAPI, 
-  type Project as APIProject, 
   type CreateProjectData,
   type UpdateProjectData,
   type ProjectStats

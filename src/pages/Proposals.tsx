@@ -27,7 +27,8 @@ import { ProposalDetailsDialog } from '@/components/proposals/ProposalDetailsDia
 import { ProposalTable } from '@/components/proposals/ProposalTable';
 import { LeadDialog } from '@/components/proposals/LeadDialog';
 import { LeadsTable } from '@/components/proposals/LeadsTable';
-import { Proposal, Lead, ProposalStatus, LeadStatus } from '@/types';
+import type { Proposal, Lead } from '@/services/api/proposals';
+import type { ProposalStatus, LeadStatus } from '@/types';
 import { toast } from 'sonner';
 
 type ViewMode = 'cards' | 'table';
@@ -186,10 +187,25 @@ export default function Proposals() {
   const handleSaveProposal = async (data: Omit<Proposal, 'id' | 'proposal_number' | 'version' | 'created_at' | 'updated_at'>) => {
     try {
       if (selectedProposal) {
-        await updateProposal(selectedProposal.id, data);
+        await updateProposal(selectedProposal.id, {
+          title: data.title,
+          amount: data.amount,
+          status: data.status as 'Draft' | 'Sent' | 'Viewed' | 'Accepted' | 'Rejected' | 'Expired' | 'Cancelled',
+          valid_until: data.valid_until,
+          content: data.terms,
+          terms: data.terms,
+        });
         toast.success('Proposal updated successfully');
       } else {
-        await createProposal(data);
+        await createProposal({
+          title: data.title,
+          client_id: data.client_id || '',
+          lead_id: data.lead_id,
+          amount: data.amount,
+          valid_until: data.valid_until || new Date().toISOString(),
+          content: data.terms,
+          terms: data.terms,
+        });
         toast.success('Proposal created successfully');
       }
       setShowProposalDialog(false);
@@ -288,11 +304,31 @@ export default function Proposals() {
 
   const handleSaveLead = async (data: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Split name into first_name and last_name for API
+      const nameParts = data.name.split(' ');
+      const first_name = nameParts[0] || '';
+      const last_name = nameParts.slice(1).join(' ') || '';
+      
+      const apiData = {
+        first_name,
+        last_name,
+        email: data.email,
+        phone: data.phone,
+        company: data.company,
+        source: data.source,
+        status: data.status === 'Converted' ? 'Won' : data.status as 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Proposal Sent' | 'Negotiation' | 'Won' | 'Lost',
+        priority: data.priority as 'Low' | 'Medium' | 'High',
+        tags: data.tags,
+        budget: data.budget,
+        notes: data.notes,
+        assigned_to: data.assigned_to,
+      };
+      
       if (selectedLead) {
-        await updateLead(selectedLead.id, data);
+        await updateLead(selectedLead.id, apiData);
         toast.success('Lead updated successfully');
       } else {
-        await createLead(data);
+        await createLead(apiData);
         toast.success('Lead created successfully');
       }
       setShowLeadDialog(false);

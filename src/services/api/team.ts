@@ -2,21 +2,41 @@
 import { adminApiClient } from './auth';
 
 // Types
+export type UserRole = 'admin' | 'manager' | 'member' | 'viewer' | 'Admin' | 'Manager' | 'Staff';
+
 export interface User {
   id: string;
   email: string;
   first_name: string;
   last_name: string;
-  role: 'admin' | 'manager' | 'member' | 'viewer';
+  role: UserRole;
   position?: string;
   department?: string;
   phone?: string;
   avatar?: string;
+  avatar_url?: string;
   bio?: string;
   is_active: boolean;
+  status?: 'active' | 'inactive';
   last_login?: string;
+  last_active?: string;
+  name?: string;
+  performance_metrics?: {
+    tasks_completed: number;
+    projects_managed: number;
+    proposals_sent: number;
+    expenses_entered: number;
+    avg_task_completion_time: number;
+    client_satisfaction_rating: number;
+  };
   created_at: string;
   updated_at: string;
+}
+
+export interface Permission {
+  id: string;
+  resource: string;
+  actions: string[];
 }
 
 export interface TeamMember extends User {
@@ -74,7 +94,7 @@ export interface CreateUserData {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'admin' | 'manager' | 'member' | 'viewer';
+  role: UserRole;
   position?: string;
   department?: string;
   phone?: string;
@@ -83,12 +103,13 @@ export interface CreateUserData {
 export interface UpdateUserData {
   first_name?: string;
   last_name?: string;
-  role?: 'admin' | 'manager' | 'member' | 'viewer';
+  role?: UserRole;
   position?: string;
   department?: string;
   phone?: string;
   bio?: string;
   is_active?: boolean;
+  status?: 'active' | 'inactive';
 }
 
 export interface UpdatePasswordData {

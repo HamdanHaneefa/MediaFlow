@@ -34,7 +34,7 @@ export function ClientDashboard({ project }: ClientDashboardProps) {
   const approvedAssets = projectAssets.filter((a) => a.status === 'Approved' || a.status === 'Final');
   const unreadMessages = messages.filter((m) => !m.is_read && m.recipient_id);
 
-  const completedTasks = projectTasks.filter((t) => t.status === 'Completed').length;
+  const completedTasks = projectTasks.filter((t) => t.status === 'Done').length;
   const totalTasks = projectTasks.length;
   const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 

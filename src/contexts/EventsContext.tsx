@@ -49,9 +49,11 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       setEvents(response.items || response || []); // Handle both paginated and direct array responses
       console.log('EventsContext.fetchEvents - Events set:', response.items?.length || response?.length || 0);
       
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('EventsContext.fetchEvents - Full error:', err);
-      console.error('EventsContext.fetchEvents - Error response:', err.response);
+      if (err && typeof err === 'object' && 'response' in err) {
+        console.error('EventsContext.fetchEvents - Error response:', (err as { response: unknown }).response);
+      }
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
       console.error('Error fetching events:', err);
     } finally {

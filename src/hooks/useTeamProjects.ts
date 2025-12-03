@@ -1,7 +1,7 @@
 import { useTeam } from '@/contexts/TeamContext';
 import { useProjects } from '@/contexts/ProjectsContext';
 
-export function useTeamProjects(currentUserId?: string) {
+export function useTeamProjects(_currentUserId?: string) {
   const { teamMembers } = useTeam();
   const { projects } = useProjects();
 

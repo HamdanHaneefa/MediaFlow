@@ -11,10 +11,9 @@ import { TeamAssignmentView } from '@/components/team/TeamAssignmentView';
 import { TeamDashboard } from '@/components/team/TeamDashboard';
 import { TeamSettings } from '@/components/team/TeamSettings';
 import { TeamsManagementView } from '@/components/team/TeamsManagementView';
-import type { TeamMember, TeamInvitation } from '@/types/team';
 
 export default function Team() {
-  const { teamMembers } = useTeam();
+  const { teamMembers, pendingInvitations } = useTeam();
   const [activeTab, setActiveTab] = useState('members');
   const [showMemberDialog, setShowMemberDialog] = useState(false);
   const [showInvitationDialog, setShowInvitationDialog] = useState(false);
@@ -30,8 +29,7 @@ export default function Team() {
     setEditingMember(null);
   };
 
-  const activeMembers = teamMembers.filter(member => member.status === 'active');
-  const pendingInvitations: unknown[] = []; // TODO: Add invitations to context
+  const activeMembers = teamMembers.filter(member => member.is_active);
   const activeTeams = 0; // TODO: Add teams to context
   const projectAssignments: unknown[] = []; // TODO: Add project assignments to context
 
@@ -144,9 +142,9 @@ export default function Team() {
             
             <TabsContent value="members" className="mt-6">
               <TeamMemberGrid
-                teamMembers={teamMembers as unknown as TeamMember[]}
+                teamMembers={teamMembers}
                 onEditMember={handleEditMember}
-                invitations={pendingInvitations as unknown as TeamInvitation[]}
+                invitations={pendingInvitations}
               />
             </TabsContent>
             

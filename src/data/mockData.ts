@@ -1,5 +1,5 @@
 // Mock data for development and testing
-import { Contact, Project } from '@/types';
+import { Contact } from '@/types';
 
 export const mockContacts: Contact[] = [
   {

@@ -15,7 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Lead, LeadStatus, LeadPriority } from '@/types';
+import type { Lead } from '@/services/api/proposals';
+import type { LeadStatus } from '@/types';
 import { MoreVertical, Edit, Trash2, UserPlus, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -27,17 +28,19 @@ interface LeadsTableProps {
   onUpdateStatus: (id: string, status: LeadStatus) => void;
 }
 
-const statusColors: Record<LeadStatus, string> = {
+const statusColors: Record<string, string> = {
   'New': 'bg-blue-100 text-blue-800 border-blue-200',
   'Contacted': 'bg-purple-100 text-purple-800 border-purple-200',
   'Qualified': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  'Proposal': 'bg-indigo-100 text-indigo-800 border-indigo-200',
   'Proposal Sent': 'bg-indigo-100 text-indigo-800 border-indigo-200',
   'Negotiation': 'bg-orange-100 text-orange-800 border-orange-200',
+  'Won': 'bg-emerald-100 text-emerald-800 border-emerald-200',
   'Lost': 'bg-red-100 text-red-800 border-red-200',
   'Converted': 'bg-emerald-100 text-emerald-800 border-emerald-200',
 };
 
-const priorityColors: Record<LeadPriority, string> = {
+const priorityColors: Record<string, string> = {
   'Low': 'bg-slate-100 text-slate-800 border-slate-200',
   'Medium': 'bg-blue-100 text-blue-800 border-blue-200',
   'High': 'bg-orange-100 text-orange-800 border-orange-200',

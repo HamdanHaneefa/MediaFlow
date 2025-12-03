@@ -1,4 +1,4 @@
-import { Proposal } from '@/types';
+import type { Proposal } from '@/services/api/proposals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

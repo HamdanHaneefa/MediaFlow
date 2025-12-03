@@ -6,7 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAccounting } from '../../contexts/AccountingContext';
-import { IncomeType, IncomeStatus, Income } from '../../types';
+import { Income, IncomeStatus } from '@/services/api/accounting';
+
+type IncomeType = 'project' | 'retainer' | 'consultation' | 'licensing' | 'other';
 
 interface IncomeDialogProps {
   open: boolean;
@@ -21,13 +23,13 @@ export default function IncomeDialog({ open, onOpenChange, income }: IncomeDialo
     title: '',
     description: '',
     amount: '',
-    income_type: '' as IncomeType,
+    income_type: 'other' as IncomeType,
     expected_date: new Date().toISOString().split('T')[0],
-    received_date: '',
-    status: 'Expected' as IncomeStatus,
-    project_id: '',
     client_id: '',
-    invoice_number: ''
+    project_id: '',
+    status: 'Expected' as IncomeStatus,
+    invoice_number: '',
+    received_date: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,7 @@ export default function IncomeDialog({ open, onOpenChange, income }: IncomeDialo
         title: income.title || '',
         description: income.description || '',
         amount: income.amount?.toString() || '',
-        income_type: income.income_type || '' as IncomeType,
+        income_type: (income.income_type as IncomeType) || 'other',
         expected_date: income.expected_date || new Date().toISOString().split('T')[0],
         received_date: income.received_date || '',
         status: income.status || 'Expected' as IncomeStatus,

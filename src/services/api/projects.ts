@@ -60,12 +60,17 @@ export interface ProjectFile {
 }
 
 export interface CreateProjectData {
-  name: string;
+  name?: string;
+  title?: string;
   description?: string;
-  contact_id: string;
+  contact_id?: string;
+  client_id?: string;
+  type?: string;
+  phase?: string;
+  team_members?: string[];
   status?: 'Planning' | 'Active' | 'On Hold' | 'Completed' | 'Cancelled';
   priority?: 'Low' | 'Medium' | 'High' | 'Critical';
-  start_date: string;
+  start_date?: string;
   end_date?: string;
   deadline?: string;
   budget?: number;

@@ -53,8 +53,8 @@ export function EventDialog({
   // const { locations, equipment } = useResources();
   
   // Temporary mock data for disabled contexts
-  const locations: never[] = [];
-  const equipment: never[] = [];
+  const locations: Array<{ id: string; name: string }> = [];
+  const equipment: Array<{ id: string; name: string; category: string }> = [];
   
   const isEditing = !!event;
 
@@ -89,7 +89,7 @@ export function EventDialog({
         notes: event.notes || '',
       });
       setSelectedAttendees(event.attendees);
-      setSelectedEquipment(event.equipment_needed);
+      setSelectedEquipment(event.equipment_needed || []);
     } else if (defaultDate) {
       const startHour = defaultTime !== undefined ? defaultTime : 9;
       const startDateTime = new Date(defaultDate);
@@ -138,6 +138,7 @@ export function EventDialog({
         location_id: formData.location_id === 'none' ? undefined : formData.location_id,
         attendees: selectedAttendees,
         equipment_needed: selectedEquipment,
+        is_all_day: false,
       };
 
       if (isEditing) {

@@ -146,7 +146,7 @@ export interface Project {
 }
 
 export type TaskStatus = 'To Do' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
-export type TaskPriority = 'High' | 'Medium' | 'Low';
+export type TaskPriority = 'High' | 'Medium' | 'Low' | 'Critical';
 export type TaskType = 'Creative' | 'Technical' | 'Administrative';
 
 export interface Task {
@@ -158,12 +158,12 @@ export interface Task {
   assigned_to?: string;
   due_date?: string;
   priority: TaskPriority;
-  type: TaskType;
+  type?: TaskType;
   created_at: string;
   updated_at: string;
 }
 
-export type EventType = 'Shoot' | 'Meeting' | 'Deadline' | 'Milestone' | 'Delivery';
+export type EventType = 'Shoot' | 'Meeting' | 'Deadline' | 'Milestone' | 'Delivery' | string;
 export type EventStatus = 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled';
 
 export interface Event {
@@ -175,8 +175,10 @@ export interface Event {
   end_time: string;
   project_id?: string;
   location_id?: string;
+  location?: string;
   attendees: string[];
-  equipment_needed: string[];
+  equipment_needed?: string[];
+  is_all_day?: boolean;
   status: EventStatus;
   notes?: string;
   created_at: string;

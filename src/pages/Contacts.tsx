@@ -64,11 +64,27 @@ export function Contacts() {
   const handleSaveContact = async (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     setSaving(true);
     try {
+      // Split name into first_name and last_name for API
+      const nameParts = data.name.split(' ');
+      const first_name = nameParts[0] || '';
+      const last_name = nameParts.slice(1).join(' ') || '';
+      
+      const apiData = {
+        first_name,
+        last_name,
+        email: data.email,
+        phone: data.phone,
+        company: data.company,
+        status: data.status,
+        notes: data.notes,
+        tags: data.tags,
+      };
+      
       if (selectedContact) {
-        await updateContact(selectedContact.id, data);
+        await updateContact(selectedContact.id, apiData);
         toast.success('Contact updated successfully');
       } else {
-        await createContact(data);
+        await createContact(apiData);
         toast.success('Contact added successfully');
       }
     } catch (error) {

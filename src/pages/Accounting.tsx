@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Download, FileText, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAccounting } from '../contexts/AccountingContext';
-import { Expense, Income } from '../types';
+import type { Expense, Income } from '@/services/api/accounting';
 import ExpenseTracker from '../components/accounting/ExpenseTracker';
 import FinancialDashboard from '../components/accounting/FinancialDashboard';
 import IncomeManager from '../components/accounting/IncomeManager';

@@ -18,6 +18,7 @@ interface TeamContextType {
   teamMembers: TeamUser[];
   teams: Team[];
   projectAssignments: ProjectAssignment[];
+  pendingInvitations: { id: string; email: string; role: string; status: string; created_at: string }[];
   loading: boolean;
   teamsLoading: boolean;
   error: string | null;
@@ -44,6 +45,9 @@ interface TeamContextType {
   assignToProject: (assignment: Omit<ProjectAssignment, 'id'>) => Promise<ProjectAssignment | null>;
   removeFromProject: (assignmentId: string) => Promise<boolean>;
   fetchProjectAssignments: () => Promise<void>;
+  // Invitation methods
+  sendInvitation: (data: { email: string; role: string }) => Promise<boolean>;
+  deleteInvitation: (id: string) => Promise<boolean>;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -368,6 +372,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         teamMembers,
         teams,
         projectAssignments,
+        pendingInvitations: [],
         loading,
         teamsLoading,
         error,
@@ -394,6 +399,9 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         assignToProject,
         removeFromProject,
         fetchProjectAssignments,
+        // Invitation methods (stubs)
+        sendInvitation: async (_data: { email: string; role: string }) => true,
+        deleteInvitation: async (_id: string) => true,
       }}
     >
       {children}

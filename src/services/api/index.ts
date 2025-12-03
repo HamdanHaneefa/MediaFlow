@@ -19,16 +19,19 @@ export type { User, LoginCredentials, RegisterData, AuthResponse } from './auth'
 export type { Contact, CreateContactData, UpdateContactData, ContactNote, ContactStats } from './contacts';
 export type { Project, ProjectMember, CreateProjectData, UpdateProjectData, ProjectStats } from './projects';
 export type { Task, CreateTaskData, UpdateTaskData, TaskComment, TaskAttachment, TaskStats } from './tasks';
-export type { User as TeamMember, CreateUserData, UpdateUserData, Permission, TeamStats, Team, CreateTeamData, UpdateTeamData } from './team';
+export type { User as TeamMember, CreateUserData, UpdateUserData, Permission, TeamStats, Team, CreateTeamData, UpdateTeamData, UpdatePasswordData, SetPermissionsData, UserRole } from './team';
 export type { Event, CreateEventData, UpdateEventData, EventStats, EventRecurrence, EventReminder } from './events';
 export type { 
   Expense, 
   Income, 
   Invoice, 
   CreateExpenseData, 
+  UpdateExpenseData,
   CreateIncomeData, 
+  UpdateIncomeData,
   CreateInvoiceData, 
-  AccountingStats 
+  AccountingStats,
+  FinancialReport
 } from './accounting';
 export type { 
   Lead, 

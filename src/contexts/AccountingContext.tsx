@@ -24,17 +24,29 @@ interface AccountingContextType {
     invoices: { page: number; limit: number; total: number; totalPages: number };
   };
   
+  // Filtered data
+  filteredExpenses: Expense[];
+  filteredIncome: Income[];
+  
+  // Expense Filters
+  setExpenseFilters: (filters: { status?: string; category?: string; search?: string }) => void;
+  setIncomeFilters: (filters: { status?: string; search?: string }) => void;
+  
   // Expense Management
   fetchExpenses: (params?: { page?: number; limit?: number; category?: string; start_date?: string; end_date?: string }) => Promise<void>;
   createExpense: (data: CreateExpenseData) => Promise<Expense | null>;
+  addExpense: (data: CreateExpenseData) => Promise<Expense | null>;
   updateExpense: (id: string, data: UpdateExpenseData) => Promise<Expense | null>;
   deleteExpense: (id: string) => Promise<boolean>;
   uploadReceipt: (expenseId: string, file: File) => Promise<Expense | null>;
   exportExpenses: (start_date?: string, end_date?: string) => Promise<void>;
+  approveExpense: (id: string) => Promise<Expense | null>;
+  rejectExpense: (id: string, reason?: string) => Promise<Expense | null>;
   
   // Income Management
   fetchIncome: (params?: { page?: number; limit?: number; start_date?: string; end_date?: string }) => Promise<void>;
   createIncome: (data: CreateIncomeData) => Promise<Income | null>;
+  addIncome: (data: CreateIncomeData) => Promise<Income | null>;
   updateIncome: (id: string, data: UpdateIncomeData) => Promise<Income | null>;
   deleteIncome: (id: string) => Promise<boolean>;
   exportIncome: (start_date?: string, end_date?: string) => Promise<void>;
@@ -75,11 +87,45 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expenseFilters, setExpenseFiltersState] = useState<{ status?: string; category?: string; search?: string }>({});
+  const [incomeFilters, setIncomeFiltersState] = useState<{ status?: string; search?: string }>({});
   const [pagination, setPagination] = useState({
     expenses: { page: 1, limit: 10, total: 0, totalPages: 0 },
     income: { page: 1, limit: 10, total: 0, totalPages: 0 },
     invoices: { page: 1, limit: 10, total: 0, totalPages: 0 },
   });
+
+  // Filtered data
+  const filteredExpenses = expenses.filter(expense => {
+    if (expenseFilters.status && expense.status !== expenseFilters.status) return false;
+    if (expenseFilters.category && expense.category !== expenseFilters.category) return false;
+    if (expenseFilters.search) {
+      const search = expenseFilters.search.toLowerCase();
+      const desc = expense.description?.toLowerCase() || '';
+      const vendor = expense.vendor?.toLowerCase() || '';
+      if (!desc.includes(search) && !vendor.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const filteredIncome = income.filter(inc => {
+    if (incomeFilters.status && inc.status !== incomeFilters.status) return false;
+    if (incomeFilters.search) {
+      const search = incomeFilters.search.toLowerCase();
+      const desc = inc.description?.toLowerCase() || '';
+      const source = inc.source?.toLowerCase() || '';
+      if (!desc.includes(search) && !source.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const setExpenseFilters = useCallback((filters: { status?: string; category?: string; search?: string }) => {
+    setExpenseFiltersState(filters);
+  }, []);
+
+  const setIncomeFilters = useCallback((filters: { status?: string; search?: string }) => {
+    setIncomeFiltersState(filters);
+  }, []);
 
   // Expense Management
   const fetchExpenses = useCallback(async (params?: {
@@ -379,14 +425,22 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     loading,
     error,
     pagination,
+    filteredExpenses,
+    filteredIncome,
+    setExpenseFilters,
+    setIncomeFilters,
     fetchExpenses,
     createExpense,
+    addExpense: createExpense,
     updateExpense,
     deleteExpense,
     uploadReceipt,
     exportExpenses,
+    approveExpense: async (id: string) => updateExpense(id, { status: 'Approved' } as UpdateExpenseData),
+    rejectExpense: async (id: string, _reason?: string) => updateExpense(id, { status: 'Rejected' } as UpdateExpenseData),
     fetchIncome,
     createIncome,
+    addIncome: createIncome,
     updateIncome,
     deleteIncome,
     exportIncome,

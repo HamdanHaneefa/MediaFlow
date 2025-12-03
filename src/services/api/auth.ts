@@ -71,8 +71,24 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  name?: string;
+  phone?: string;
+  avatar?: string;
+  avatar_url?: string;
   role: 'Admin' | 'Manager' | 'Staff';
+  position?: string;
+  status?: 'active' | 'inactive' | 'on_leave';
   is_active: boolean;
+  bio?: string;
+  last_active?: string;
+  performance_metrics?: {
+    tasks_completed: number;
+    projects_managed: number;
+    proposals_sent: number;
+    expenses_entered: number;
+    avg_task_completion_time: number;
+    client_satisfaction_rating: number;
+  };
   created_at: string;
   updated_at: string;
 }

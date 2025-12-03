@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Lead, LeadStatus, LeadSource, LeadPriority } from '@/types';
+import { Lead } from '@/services/api/proposals';
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+
+type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Proposal Sent' | 'Negotiation' | 'Won' | 'Lost' | 'Converted';
+type LeadSource = 'website' | 'referral' | 'social_media' | 'cold_call' | 'event' | 'other';
+type LeadPriority = 'Low' | 'Medium' | 'High';
 
 interface LeadFormData {
   name: string;
@@ -35,11 +34,8 @@ interface LeadFormData {
   source: LeadSource;
   priority: LeadPriority;
   budget: number;
-  estimated_close_date: string;
   notes: string;
   tags: string;
-  contact_date: string;
-  follow_up_date: string;
 }
 
 interface LeadDialogProps {
@@ -69,20 +65,13 @@ export function LeadDialog({
       email: '',
       phone: '',
       status: 'New',
-      source: 'Other',
+      source: 'other',
       priority: 'Medium',
       budget: 0,
-      estimated_close_date: '',
       notes: '',
       tags: '',
-      contact_date: '',
-      follow_up_date: '',
     },
   });
-
-  const contactDate = watch('contact_date');
-  const followUpDate = watch('follow_up_date');
-  const estimatedCloseDate = watch('estimated_close_date');
 
   useEffect(() => {
     if (lead) {
@@ -92,14 +81,11 @@ export function LeadDialog({
         email: lead.email,
         phone: lead.phone || '',
         status: lead.status,
-        source: lead.source,
+        source: lead.source as LeadSource,
         priority: lead.priority,
         budget: lead.budget || 0,
-        estimated_close_date: lead.estimated_close_date || '',
         notes: lead.notes || '',
         tags: lead.tags.join(', '),
-        contact_date: lead.contact_date ? lead.contact_date.split('T')[0] : '',
-        follow_up_date: lead.follow_up_date ? lead.follow_up_date.split('T')[0] : '',
       });
     } else {
       reset({
@@ -108,14 +94,11 @@ export function LeadDialog({
         email: '',
         phone: '',
         status: 'New',
-        source: 'Other',
+        source: 'other',
         priority: 'Medium',
         budget: 0,
-        estimated_close_date: '',
         notes: '',
         tags: '',
-        contact_date: '',
-        follow_up_date: '',
       });
     }
   }, [lead, reset]);
@@ -124,6 +107,8 @@ export function LeadDialog({
     try {
       await onSave({
         name: data.name,
+        first_name: data.name.split(' ')[0],
+        last_name: data.name.split(' ').slice(1).join(' ') || '',
         company: data.company || undefined,
         email: data.email,
         phone: data.phone || undefined,
@@ -131,11 +116,8 @@ export function LeadDialog({
         source: data.source,
         priority: data.priority,
         budget: data.budget || undefined,
-        estimated_close_date: data.estimated_close_date || undefined,
         notes: data.notes || undefined,
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-        contact_date: data.contact_date ? new Date(data.contact_date).toISOString() : undefined,
-        follow_up_date: data.follow_up_date ? new Date(data.follow_up_date).toISOString() : undefined,
       });
       onOpenChange(false);
     } catch (error) {
@@ -272,86 +254,6 @@ export function LeadDialog({
                 {...register('budget')}
                 placeholder="0.00"
               />
-            </div>
-
-            <div>
-              <Label htmlFor="contact_date">Contact Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full pl-3 text-left font-normal',
-                      !contactDate && 'text-muted-foreground'
-                    )}
-                  >
-                    {contactDate ? format(new Date(contactDate), 'PPP') : 'Pick a date'}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={contactDate ? new Date(contactDate) : undefined}
-                    onSelect={(date) => setValue('contact_date', date ? date.toISOString().split('T')[0] : '')}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <Label htmlFor="follow_up_date">Follow-up Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full pl-3 text-left font-normal',
-                      !followUpDate && 'text-muted-foreground'
-                    )}
-                  >
-                    {followUpDate ? format(new Date(followUpDate), 'PPP') : 'Pick a date'}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={followUpDate ? new Date(followUpDate) : undefined}
-                    onSelect={(date) => setValue('follow_up_date', date ? date.toISOString().split('T')[0] : '')}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <Label htmlFor="estimated_close_date">Estimated Close Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full pl-3 text-left font-normal',
-                      !estimatedCloseDate && 'text-muted-foreground'
-                    )}
-                  >
-                    {estimatedCloseDate ? format(new Date(estimatedCloseDate), 'PPP') : 'Pick a date'}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={estimatedCloseDate ? new Date(estimatedCloseDate) : undefined}
-                    onSelect={(date) => setValue('estimated_close_date', date ? date.toISOString().split('T')[0] : '')}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
             </div>
 
             <div className="col-span-2">

@@ -14,7 +14,7 @@ import {
   XCircle,
   ExternalLink
 } from 'lucide-react';
-import { Expense } from '../../types';
+import type { Expense } from '@/services/api/accounting';
 import { format } from 'date-fns';
 
 interface ExpenseDetailsDialogProps {

@@ -43,6 +43,11 @@ interface ProposalsContextType {
   duplicateProposal: (id: string) => Promise<Proposal | null>;
   getProposalStats: () => Promise<ProposalStats | null>;
   getProposalById: (id: string) => Proposal | undefined;
+  
+  // Proposal detail helpers
+  getItemsByProposal: (proposalId: string) => { id: string; name: string; description?: string; quantity: number; unit_price: number; total: number }[];
+  getActivitiesByProposal: (proposalId: string) => { id: string; activity_type: string; description: string; created_at: string }[];
+  getRevisionsByProposal: (proposalId: string) => { id: string; version: number; changes_summary: string; created_at: string }[];
 }
 
 const ProposalsContext = createContext<ProposalsContextType | undefined>(undefined);
@@ -359,6 +364,11 @@ export function ProposalsProvider({ children }: { children: ReactNode }) {
         duplicateProposal,
         getProposalStats,
         getProposalById,
+        
+        // Proposal detail helpers (stubs - implement with actual API when available)
+        getItemsByProposal: (_proposalId: string) => [],
+        getActivitiesByProposal: (_proposalId: string) => [],
+        getRevisionsByProposal: (_proposalId: string) => [],
       }}
     >
       {children}

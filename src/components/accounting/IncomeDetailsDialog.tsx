@@ -13,7 +13,7 @@ import {
   XCircle,
   CreditCard
 } from 'lucide-react';
-import { Income } from '../../types';
+import type { Income } from '@/services/api/accounting';
 import { format } from 'date-fns';
 
 interface IncomeDetailsDialogProps {

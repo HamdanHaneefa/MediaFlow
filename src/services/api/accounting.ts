@@ -2,30 +2,64 @@
 import { adminApiClient } from './auth';
 
 // Types
+export type ExpenseCategory = 
+  | 'Equipment Rental'
+  | 'Location'
+  | 'Travel'
+  | 'Catering'
+  | 'Crew'
+  | 'Post Production'
+  | 'Marketing'
+  | 'Office Supplies'
+  | 'Utilities'
+  | 'Insurance'
+  | 'Legal'
+  | 'Other'
+  | string;
+
+export type ExpenseStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Paid' | 'Reimbursed';
+export type IncomeStatus = 'Expected' | 'Received' | 'Overdue' | 'Cancelled';
+export type IncomeType = 'Project Payment' | 'Deposit' | 'Final Payment' | 'Additional Services' | 'Other' | string;
+
 export interface Expense {
   id: string;
-  category: string;
+  title: string;
+  category: ExpenseCategory;
   amount: number;
   description?: string;
   vendor?: string;
   receipt_url?: string;
-  payment_method: 'Cash' | 'Credit Card' | 'Bank Transfer' | 'Check' | 'Other';
-  date: string;
+  receipt_filename?: string;
+  payment_method?: 'Cash' | 'Credit Card' | 'Bank Transfer' | 'Check' | 'Other';
+  status: 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Paid' | 'Reimbursed';
+  date?: string;
+  expense_date: string;
+  submitted_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
   project_id?: string;
-  created_by: string;
+  created_by?: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface Income {
   id: string;
-  source: string;
+  title: string;
+  source?: string;
   amount: number;
   description?: string;
-  date: string;
+  status: 'Expected' | 'Received' | 'Overdue' | 'Cancelled';
+  income_type?: IncomeType;
+  date?: string;
+  expected_date?: string;
+  received_date?: string;
   invoice_id?: string;
+  invoice_number?: string;
+  client_id?: string;
   project_id?: string;
-  created_by: string;
+  created_by?: string;
   created_at: string;
   updated_at: string;
 }
@@ -66,27 +100,68 @@ export interface InvoiceLineItem {
 }
 
 export interface CreateExpenseData {
+  title?: string;
   category: string;
   amount: number;
   description?: string;
   vendor?: string;
-  payment_method: 'Cash' | 'Credit Card' | 'Bank Transfer' | 'Check' | 'Other';
-  date: string;
+  payment_method?: 'Cash' | 'Credit Card' | 'Bank Transfer' | 'Check' | 'Other';
+  status?: 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Paid' | 'Reimbursed';
+  date?: string;
+  expense_date?: string;
+  submitted_by?: string;
   project_id?: string;
+  receipt_url?: string;
+  receipt_filename?: string;
 }
 
-export interface UpdateExpenseData extends Partial<CreateExpenseData> {}
+export interface UpdateExpenseData {
+  title?: string;
+  category?: string;
+  amount?: number;
+  description?: string;
+  vendor?: string;
+  payment_method?: 'Cash' | 'Credit Card' | 'Bank Transfer' | 'Check' | 'Other';
+  status?: 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Paid' | 'Reimbursed';
+  date?: string;
+  expense_date?: string;
+  submitted_by?: string;
+  project_id?: string;
+  receipt_url?: string;
+  receipt_filename?: string;
+}
 
 export interface CreateIncomeData {
-  source: string;
+  title?: string;
+  source?: string;
   amount: number;
   description?: string;
-  date: string;
+  status?: 'Expected' | 'Received' | 'Overdue' | 'Cancelled';
+  income_type?: string;
+  date?: string;
+  expected_date?: string;
+  received_date?: string;
   invoice_id?: string;
+  invoice_number?: string;
+  client_id?: string;
   project_id?: string;
 }
 
-export interface UpdateIncomeData extends Partial<CreateIncomeData> {}
+export interface UpdateIncomeData {
+  title?: string;
+  source?: string;
+  amount?: number;
+  description?: string;
+  status?: 'Expected' | 'Received' | 'Overdue' | 'Cancelled';
+  income_type?: string;
+  date?: string;
+  expected_date?: string;
+  received_date?: string;
+  invoice_id?: string;
+  invoice_number?: string;
+  client_id?: string;
+  project_id?: string;
+}
 
 export interface CreateInvoiceData {
   client_id: string;

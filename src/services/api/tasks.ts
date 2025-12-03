@@ -2,6 +2,9 @@
 import { adminApiClient } from './auth';
 
 // Types
+export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Critical';
+export type TaskType = 'Creative' | 'Technical' | 'Administrative';
+
 export interface Task {
   id: string;
   title: string;
@@ -10,7 +13,8 @@ export interface Task {
   assigned_to?: string;
   created_by: string;
   status: 'To Do' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  priority: TaskPriority;
+  type?: TaskType;
   due_date?: string;
   start_date?: string;
   completed_at?: string;
@@ -59,10 +63,11 @@ export interface TaskAttachment {
 export interface CreateTaskData {
   title: string;
   description?: string;
-  project_id: string;
+  project_id?: string;
   assigned_to?: string;
   status?: 'To Do' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
   priority?: 'Low' | 'Medium' | 'High' | 'Critical';
+  type?: 'Creative' | 'Technical' | 'Administrative';
   due_date?: string;
   start_date?: string;
   estimated_hours?: number;

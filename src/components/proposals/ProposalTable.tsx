@@ -1,4 +1,4 @@
-import { Proposal } from '@/types';
+import type { Proposal } from '@/services/api/proposals';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Proposal, ProposalType } from '@/types';
+import { Proposal } from '@/services/api/proposals';
 import { useContacts } from '@/contexts/ContactsContext';
-import { useProjects } from '@/contexts/ProjectsContext';
+
+type ProposalType = 'standard' | 'custom' | 'template' | 'revision';
+
 import { useProposals } from '@/contexts/ProposalsContext';
 import {
   Dialog,
@@ -35,12 +37,10 @@ interface ProposalFormData {
   type: ProposalType;
   lead_id: string;
   client_id: string;
-  project_id: string;
   amount: number;
   currency: string;
   valid_until: string;
   terms: string;
-  notes: string;
 }
 
 interface ProposalDialogProps {
@@ -57,7 +57,6 @@ export function ProposalDialog({
   onSave,
 }: ProposalDialogProps) {
   const { contacts } = useContacts();
-  const { projects } = useProjects();
   const { leads } = useProposals();
 
   const {
@@ -71,15 +70,13 @@ export function ProposalDialog({
     defaultValues: {
       title: '',
       description: '',
-      type: 'Standard',
+      type: 'standard',
       lead_id: '',
       client_id: '',
-      project_id: '',
       amount: 0,
       currency: 'USD',
       valid_until: '',
       terms: '',
-      notes: '',
     },
   });
 
@@ -90,29 +87,25 @@ export function ProposalDialog({
       reset({
         title: proposal.title,
         description: proposal.description || '',
-        type: proposal.type,
+        type: proposal.type.toLowerCase() as ProposalType,
         lead_id: proposal.lead_id || '',
         client_id: proposal.client_id || '',
-        project_id: proposal.project_id || '',
         amount: proposal.amount,
         currency: proposal.currency,
         valid_until: proposal.valid_until || '',
         terms: proposal.terms || '',
-        notes: proposal.notes || '',
       });
     } else {
       reset({
         title: '',
         description: '',
-        type: 'Standard',
+        type: 'standard',
         lead_id: '',
         client_id: '',
-        project_id: '',
         amount: 0,
         currency: 'USD',
         valid_until: '',
         terms: '',
-        notes: '',
       });
     }
   }, [proposal, reset]);
@@ -123,16 +116,16 @@ export function ProposalDialog({
         title: data.title,
         description: data.description,
         status: 'Draft',
-        type: data.type,
+        type: data.type.charAt(0).toUpperCase() + data.type.slice(1) as 'Standard' | 'Custom' | 'Quick Quote' | 'Retainer' | 'Package Deal',
         lead_id: data.lead_id || undefined,
-        client_id: data.client_id || undefined,
-        project_id: data.project_id || undefined,
+        client_id: data.client_id,
         amount: Number(data.amount),
         currency: data.currency,
-        valid_until: data.valid_until || undefined,
+        valid_until: data.valid_until,
         terms: data.terms || undefined,
-        notes: data.notes || undefined,
         assigned_team_members: [],
+        sections: [],
+        created_by: '',
       });
       onOpenChange(false);
     } catch (error) {
@@ -301,26 +294,6 @@ export function ProposalDialog({
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="project_id">Project</Label>
-              <Select
-                value={watch('project_id')}
-                onValueChange={(value) => setValue('project_id', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="col-span-2">
               <Label htmlFor="terms">Terms & Conditions</Label>
               <Textarea
@@ -328,16 +301,6 @@ export function ProposalDialog({
                 {...register('terms')}
                 placeholder="Enter terms and conditions"
                 rows={3}
-              />
-            </div>
-
-            <div className="col-span-2">
-              <Label htmlFor="notes">Internal Notes</Label>
-              <Textarea
-                id="notes"
-                {...register('notes')}
-                placeholder="Enter internal notes"
-                rows={2}
               />
             </div>
           </div>
