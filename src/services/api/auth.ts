@@ -2,7 +2,6 @@
 import axios, { AxiosInstance } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-console.log('API Base URL:', API_BASE_URL);
 // Create axios instance for admin API
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
