@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Plus, Download, FileText, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
-import { useAccounting } from '../contexts/AccountingContext';
 import type { Expense, Income } from '@/services/api/accounting';
+import { DollarSign, Download, FileText, Plus, TrendingDown, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import ExpenseDialog from '../components/accounting/ExpenseDialog';
 import ExpenseTracker from '../components/accounting/ExpenseTracker';
 import FinancialDashboard from '../components/accounting/FinancialDashboard';
-import IncomeManager from '../components/accounting/IncomeManager';
-import ExpenseDialog from '../components/accounting/ExpenseDialog';
-import IncomeDialog from '../components/accounting/IncomeDialog';
 import FinancialReports from '../components/accounting/FinancialReports';
+import IncomeDialog from '../components/accounting/IncomeDialog';
+import IncomeManager from '../components/accounting/IncomeManager';
+import { useAccounting } from '../contexts/AccountingContext';
 
 export default function Accounting() {
   const { 
@@ -25,11 +25,11 @@ export default function Accounting() {
   const [editingIncome, setEditingIncome] = useState<Income | undefined>(undefined);
 
   // Calculate summary metrics
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const totalIncome = income.reduce((sum, inc) => sum + inc.amount, 0);
+  const totalExpenses = expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+  const totalIncome = income.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
   const pendingExpenses = expenses
     .filter(exp => ['Draft', 'Submitted'].includes(exp.status))
-    .reduce((sum, exp) => sum + exp.amount, 0);
+    .reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const pendingApprovals = expenses.filter(exp => exp.status === 'Submitted').length;
 
   const handleEditExpense = (expense: Expense) => {

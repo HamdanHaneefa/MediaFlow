@@ -1,34 +1,34 @@
-import { useState, useMemo } from 'react';
-import { useProposals } from '@/contexts/ProposalsContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  FileText, 
-  DollarSign, 
-  TrendingUp,
-  CheckCircle2,
-  Users
-} from 'lucide-react';
-import { ProposalCard } from '@/components/proposals/ProposalCard';
-import { ProposalDialog } from '@/components/proposals/ProposalDialog';
-import { ProposalDetailsDialog } from '@/components/proposals/ProposalDetailsDialog';
-import { ProposalTable } from '@/components/proposals/ProposalTable';
 import { LeadDialog } from '@/components/proposals/LeadDialog';
 import { LeadsTable } from '@/components/proposals/LeadsTable';
-import type { Proposal, Lead } from '@/services/api/proposals';
-import type { ProposalStatus, LeadStatus } from '@/types';
+import { ProposalCard } from '@/components/proposals/ProposalCard';
+import { ProposalDetailsDialog } from '@/components/proposals/ProposalDetailsDialog';
+import { ProposalDialog } from '@/components/proposals/ProposalDialog';
+import { ProposalTable } from '@/components/proposals/ProposalTable';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useProposals } from '@/contexts/ProposalsContext';
+import type { Lead, Proposal } from '@/services/api/proposals';
+import type { LeadStatus, ProposalStatus } from '@/types';
+import {
+  CheckCircle2,
+  DollarSign,
+  FileText,
+  Filter,
+  Plus,
+  Search,
+  TrendingUp,
+  Users
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 type ViewMode = 'cards' | 'table';
@@ -165,8 +165,8 @@ export default function Proposals() {
   const totalProposals = proposals.length;
   const sentProposals = proposals.filter(p => p.status === 'Sent').length;
   const acceptedProposals = proposals.filter(p => p.status === 'Accepted').length;
-  const totalValue = proposals.reduce((sum, p) => sum + (p.amount || 0), 0);
-  const acceptedValue = proposals.filter(p => p.status === 'Accepted').reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalValue = proposals.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const acceptedValue = proposals.filter(p => p.status === 'Accepted').reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   const winRate = sentProposals > 0 ? Math.round((acceptedProposals / sentProposals) * 100) : 0;
 
   const handleCreateProposal = () => {

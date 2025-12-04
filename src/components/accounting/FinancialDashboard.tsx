@@ -1,27 +1,27 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell,
-  LineChart,
-  Line
-} from 'recharts';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertCircle, 
-  CheckCircle, 
-  Clock
+import {
+    AlertCircle,
+    CheckCircle,
+    Clock,
+    TrendingDown,
+    TrendingUp
 } from 'lucide-react';
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
+} from 'recharts';
 import { useAccounting } from '../../contexts/AccountingContext';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -35,8 +35,8 @@ export default function FinancialDashboard() {
   } = useAccounting();
 
   // Calculate metrics
-  const totalIncome = income.reduce((sum, inc) => sum + inc.amount, 0);
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalIncome = income.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
+  const totalExpenses = expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const netProfit = totalIncome - totalExpenses;
   
   const pendingExpenses = expenses.filter(exp => ['Draft', 'Submitted'].includes(exp.status));
@@ -58,7 +58,7 @@ export default function FinancialDashboard() {
   const projectData = Object.entries(expensesByProject).map(([project, amount]) => ({
     name: project || 'Unassigned',
     expenses: amount,
-    income: income.filter(inc => inc.project_id === project).reduce((sum, inc) => sum + inc.amount, 0)
+    income: income.filter(inc => inc.project_id === project).reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0)
   }));
 
   // Monthly trend data (mock data for demo)
@@ -227,7 +227,7 @@ export default function FinancialDashboard() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-medium text-xs sm:text-sm">${expense.amount.toLocaleString()}</p>
+                    <p className="font-medium text-xs sm:text-sm">${Number(expense.amount).toLocaleString()}</p>
                     <Badge variant={expense.status === 'Approved' ? 'default' : 'outline'} className="text-xs">
                       {expense.status}
                     </Badge>
@@ -256,7 +256,7 @@ export default function FinancialDashboard() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-medium text-xs sm:text-sm">${incomeItem.amount.toLocaleString()}</p>
+                    <p className="font-medium text-xs sm:text-sm">${Number(incomeItem.amount).toLocaleString()}</p>
                     <Badge variant={incomeItem.status === 'Received' ? 'default' : 'outline'} className="text-xs">
                       {incomeItem.status}
                     </Badge>

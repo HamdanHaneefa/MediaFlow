@@ -1,16 +1,16 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import {
-  accountingAPI,
-  type Expense,
-  type Income,
-  type Invoice,
-  type CreateExpenseData,
-  type UpdateExpenseData,
-  type CreateIncomeData,
-  type UpdateIncomeData,
-  type AccountingStats,
-  type FinancialReport
+    accountingAPI,
+    type AccountingStats,
+    type CreateExpenseData,
+    type CreateIncomeData,
+    type Expense,
+    type FinancialReport,
+    type Income,
+    type Invoice,
+    type UpdateExpenseData,
+    type UpdateIncomeData
 } from '@/services/api';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 
 interface AccountingContextType {
@@ -98,6 +98,17 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
 
   const { isAuthenticated, loading: authLoading } = useAuth();
 
+  // Helper functions to normalize amounts
+  const normalizeExpense = (expense: Expense): Expense => ({
+    ...expense,
+    amount: Number(expense.amount) || 0
+  });
+
+  const normalizeIncome = (income: Income): Income => ({
+    ...income,
+    amount: Number(income.amount) || 0
+  });
+
   // Filtered data
   const filteredExpenses = expenses.filter(expense => {
     if (expenseFilters.status && expense.status !== expenseFilters.status) return false;
@@ -142,7 +153,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
       setLoading(true);
       setError(null);
       const response = await accountingAPI.expenses.getAll(params);
-      setExpenses(response.items);
+      setExpenses(response.items.map(normalizeExpense));
       setPagination(prev => ({ ...prev, expenses: response.pagination }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch expenses');
@@ -156,7 +167,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     try {
       setError(null);
       const newExpense = await accountingAPI.expenses.create(data);
-      setExpenses(prev => [newExpense, ...prev]);
+      setExpenses(prev => [normalizeExpense(newExpense), ...prev]);
       return newExpense;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create expense');
@@ -169,7 +180,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     try {
       setError(null);
       const updated = await accountingAPI.expenses.update(id, data);
-      setExpenses(prev => prev.map(exp => exp.id === id ? updated : exp));
+      setExpenses(prev => prev.map(exp => exp.id === id ? normalizeExpense(updated) : exp));
       return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update expense');
@@ -195,7 +206,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     try {
       setError(null);
       const updated = await accountingAPI.expenses.uploadReceipt(expenseId, file);
-      setExpenses(prev => prev.map(exp => exp.id === expenseId ? updated : exp));
+      setExpenses(prev => prev.map(exp => exp.id === expenseId ? normalizeExpense(updated) : exp));
       return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload receipt');
@@ -232,7 +243,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
       setLoading(true);
       setError(null);
       const response = await accountingAPI.income.getAll(params);
-      setIncome(response.items);
+      setIncome(response.items.map(normalizeIncome));
       setPagination(prev => ({ ...prev, income: response.pagination }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch income');
@@ -246,7 +257,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     try {
       setError(null);
       const newIncome = await accountingAPI.income.create(data);
-      setIncome(prev => [newIncome, ...prev]);
+      setIncome(prev => [normalizeIncome(newIncome), ...prev]);
       return newIncome;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create income');
@@ -259,7 +270,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     try {
       setError(null);
       const updated = await accountingAPI.income.update(id, data);
-      setIncome(prev => prev.map(inc => inc.id === id ? updated : inc));
+      setIncome(prev => prev.map(inc => inc.id === id ? normalizeIncome(updated) : inc));
       return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update income');
@@ -397,7 +408,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     
     expenses.forEach(expense => {
       const category = expense.category || 'Uncategorized';
-      categoryTotals[category] = (categoryTotals[category] || 0) + expense.amount;
+      categoryTotals[category] = (categoryTotals[category] || 0) + (Number(expense.amount) || 0);
     });
     
     return categoryTotals;
@@ -408,7 +419,7 @@ export function AccountingProvider({ children }: AccountingProviderProps) {
     
     expenses.forEach(expense => {
       const projectId = expense.project_id || 'Unassigned';
-      projectTotals[projectId] = (projectTotals[projectId] || 0) + expense.amount;
+      projectTotals[projectId] = (projectTotals[projectId] || 0) + (Number(expense.amount) || 0);
     });
     
     return projectTotals;

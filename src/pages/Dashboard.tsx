@@ -1,20 +1,22 @@
-import { useProjects } from '@/contexts/ProjectsContext';
-import { useContacts } from '@/contexts/ContactsContext';
-import { useTasks } from '@/contexts/TasksContext';
 import { MetricsCards } from '@/components/dashboard/MetricsCards';
+import { ProjectStatusOverview } from '@/components/dashboard/ProjectStatusOverview';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { ProjectStatusOverview } from '@/components/dashboard/ProjectStatusOverview';
 import { UpcomingDeadlines } from '@/components/dashboard/UpcomingDeadlines';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAccounting } from '@/contexts/AccountingContext';
+import { useContacts } from '@/contexts/ContactsContext';
+import { useProjects } from '@/contexts/ProjectsContext';
+import { useTasks } from '@/contexts/TasksContext';
 import { isPast, isToday, parseISO, startOfMonth } from 'date-fns';
 
 export function Dashboard() {
   const { projects, loading: projectsLoading } = useProjects();
   const { contacts, loading: contactsLoading } = useContacts();
   const { tasks, loading: tasksLoading } = useTasks();
+  const { income, loading: accountingLoading } = useAccounting();
 
-  const loading = projectsLoading || contactsLoading || tasksLoading;
+  const loading = projectsLoading || contactsLoading || tasksLoading || accountingLoading;
 
   const activeProjects = projects.filter((p) => p.status === 'Active').length;
 
@@ -25,18 +27,52 @@ export function Dashboard() {
     return createdDate >= startOfMonth(new Date()) && c.role === 'Client';
   }).length;
 
-  const revenueThisMonth = projects
-    .filter((p) => {
-      const startDate = p.start_date ? parseISO(p.start_date) : null;
+  const revenueThisMonth = income
+    .filter((inc) => {
+      // Filter income received this month
+      const receivedDate = inc.received_date ? parseISO(inc.received_date) : null;
       return (
-        startDate &&
-        startDate >= startOfMonth(new Date()) &&
-        p.budget
+        receivedDate &&
+        receivedDate >= startOfMonth(new Date()) &&
+        inc.status === 'Received'
       );
     })
-    .reduce((sum, p) => sum + (p.budget || 0), 0);
+    .reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
 
-  const revenueChange = 15;
+  // Calculate last month's revenue for comparison
+  const lastMonthStart = new Date();
+  lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  const lastMonthStartOfMonth = startOfMonth(lastMonthStart);
+  const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
+  
+  const revenueLastMonth = income
+    .filter((inc) => {
+      const receivedDate = inc.received_date ? parseISO(inc.received_date) : null;
+      return (
+        receivedDate &&
+        receivedDate >= lastMonthStartOfMonth &&
+        receivedDate <= lastMonthEnd &&
+        inc.status === 'Received'
+      );
+    })
+    .reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
+
+  // Debug logging
+  console.log('Revenue Debug:', {
+    currentMonth: new Date().toLocaleString('en-US', { year: 'numeric', month: 'long' }),
+    thisMonthRevenue: revenueThisMonth,
+    lastMonthRevenue: revenueLastMonth,
+    incomeData: income.map(inc => ({
+      title: inc.title,
+      amount: inc.amount,
+      received_date: inc.received_date,
+      status: inc.status
+    }))
+  });
+
+  const revenueChange = revenueLastMonth > 0 
+    ? Math.round(((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100)
+    : revenueThisMonth > 0 ? 100 : 0;
 
   const overdueTasks = tasks.filter(
     (t) =>
