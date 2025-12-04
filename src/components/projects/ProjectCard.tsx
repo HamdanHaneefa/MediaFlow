@@ -1,22 +1,23 @@
-import { useState } from 'react';
-import { Project } from '@/types';
+import { TaskDialog } from '@/components/tasks/TaskDialog';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useContacts } from '@/contexts/ContactsContext';
 import { useTasks } from '@/contexts/TasksContext';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Calendar, DollarSign, Plus } from 'lucide-react';
+import { Project } from '@/types';
 import { format } from 'date-fns';
+import { Calendar, DollarSign, Edit, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TaskDialog } from '@/components/tasks/TaskDialog';
 
 interface ProjectCardProps {
   project: Project;
+  onEdit?: (project: Project) => void;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const navigate = useNavigate();
   const { getContactById } = useContacts();
   const { tasks } = useTasks();
@@ -149,19 +150,35 @@ export function ProjectCard({ project }: ProjectCardProps) {
               </div>
             )}
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 sm:h-8 gap-1 text-xs sm:text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 sm:px-3"
-            onClick={(e) => {
-              e.stopPropagation();
-              setTaskDialogOpen(true);
-            }}
-          >
-            <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Add Task</span>
-            <span className="sm:hidden">Task</span>
-          </Button>
+          <div className="flex items-center gap-1 sm:gap-2">
+            {onEdit && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 sm:h-8 gap-1 text-xs sm:text-sm text-slate-600 hover:text-slate-700 hover:bg-slate-50 px-2 sm:px-3"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(project);
+                }}
+              >
+                <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 sm:h-8 gap-1 text-xs sm:text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 sm:px-3"
+              onClick={(e) => {
+                e.stopPropagation();
+                setTaskDialogOpen(true);
+              }}
+            >
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Add Task</span>
+              <span className="sm:hidden">Task</span>
+            </Button>
+          </div>
         </div>
       </div>
 

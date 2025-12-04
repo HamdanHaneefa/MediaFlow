@@ -1,29 +1,31 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useProjects } from '@/contexts/ProjectsContext';
-import { useContacts } from '@/contexts/ContactsContext';
-import { useTasks } from '@/contexts/TasksContext';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  Calendar,
-  DollarSign,
-  Users,
-  Clock,
-  Edit
-} from 'lucide-react';
-import { ProjectOverviewTab } from '@/components/projects/ProjectOverviewTab';
-import { ProjectTeamTab } from '@/components/projects/ProjectTeamTab';
-import { ProjectTasksTab } from '@/components/projects/ProjectTasksTab';
-import { ProjectTimelineTab } from '@/components/projects/ProjectTimelineTab';
+import { ProjectDialog } from '@/components/projects/ProjectDialog';
 import { ProjectFilesTab } from '@/components/projects/ProjectFilesTab';
 import { ProjectNotesTab } from '@/components/projects/ProjectNotesTab';
+import { ProjectOverviewTab } from '@/components/projects/ProjectOverviewTab';
+import { ProjectTasksTab } from '@/components/projects/ProjectTasksTab';
+import { ProjectTeamTab } from '@/components/projects/ProjectTeamTab';
+import { ProjectTimelineTab } from '@/components/projects/ProjectTimelineTab';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useContacts } from '@/contexts/ContactsContext';
+import { useProjects } from '@/contexts/ProjectsContext';
+import { useTasks } from '@/contexts/TasksContext';
 import { format } from 'date-fns';
+import {
+    ArrowLeft,
+    Calendar,
+    Clock,
+    DollarSign,
+    Edit,
+    Mail,
+    Phone,
+    Users
+} from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +33,7 @@ export function ProjectDetail() {
   const { getProjectById } = useProjects();
   const { getContactById } = useContacts();
   const { tasks } = useTasks();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const project = id ? getProjectById(id) : undefined;
   const client = project?.client_id ? getContactById(project.client_id) : undefined;
@@ -105,7 +108,12 @@ export function ProjectDetail() {
               </div>
               <p className="text-sm sm:text-base text-slate-600">{project.type}</p>
             </div>
-            <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full sm:w-auto text-xs sm:text-sm"
+              onClick={() => setEditDialogOpen(true)}
+            >
               <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Edit Project
             </Button>
@@ -247,6 +255,12 @@ export function ProjectDetail() {
           </div>
         </Tabs>
       </div>
+
+      <ProjectDialog
+        open={editDialogOpen}
+        onOpenChange={() => setEditDialogOpen(false)}
+        project={project}
+      />
     </div>
   );
 }

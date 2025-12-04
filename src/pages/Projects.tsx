@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react';
-import { useProjects } from '@/contexts/ProjectsContext';
-import { useTeamProjects } from '@/hooks/useTeamProjects';
-import { ProjectStatus, ProjectType, ProjectPhase } from '@/types';
+import { ProjectCard } from '@/components/projects/ProjectCard';
+import { ProjectDialog } from '@/components/projects/ProjectDialog';
+import { ProjectFilters } from '@/components/projects/ProjectFilters';
+import { ProjectListItem } from '@/components/projects/ProjectListItem';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -11,11 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Grid3x3, List, ArrowUpDown } from 'lucide-react';
-import { ProjectCard } from '@/components/projects/ProjectCard';
-import { ProjectListItem } from '@/components/projects/ProjectListItem';
-import { ProjectFilters } from '@/components/projects/ProjectFilters';
-import { ProjectDialog } from '@/components/projects/ProjectDialog';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useProjects } from '@/contexts/ProjectsContext';
+import { useTeamProjects } from '@/hooks/useTeamProjects';
+import { Project, ProjectPhase, ProjectStatus, ProjectType } from '@/types';
+import { ArrowUpDown, Grid3x3, List, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 type ViewMode = 'grid' | 'list';
 type SortOption = 'created' | 'due_date' | 'budget' | 'title';
@@ -29,6 +29,7 @@ export function Projects() {
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'All'>('All');
@@ -83,6 +84,16 @@ export function Projects() {
     setStatusFilter('All');
     setTypeFilter('All');
     setPhaseFilter('All');
+  };
+
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project);
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedProject(null);
   };
 
   if (loading) {
@@ -192,7 +203,11 @@ export function Projects() {
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredAndSortedProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  onEdit={handleEditProject}
+                />
               ))}
             </div>
           ) : (
@@ -218,7 +233,8 @@ export function Projects() {
 
       <ProjectDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={handleCloseDialog}
+        project={selectedProject || undefined}
       />
     </div>
   );

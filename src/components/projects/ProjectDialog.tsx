@@ -1,7 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Project, ProjectType, ProjectStatus, ProjectPhase } from '@/types';
-import { useProjects } from '@/contexts/ProjectsContext';
-import { useContacts } from '@/contexts/ContactsContext';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Dialog,
   DialogContent,
@@ -10,10 +18,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -21,28 +33,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
+import { Textarea } from '@/components/ui/textarea';
+import { useContacts } from '@/contexts/ContactsContext';
+import { useProjects } from '@/contexts/ProjectsContext';
+import { useTeam } from '@/contexts/TeamContext';
+import { cn } from '@/lib/utils';
+import { Project, ProjectPhase, ProjectStatus, ProjectType } from '@/types';
+import { format } from 'date-fns';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Film,
-  FileVideo,
-  Music,
   Briefcase,
-  Video,
-  Camera,
-  Share2,
   Calendar as CalendarIcon,
+  Camera,
+  Check,
+  ChevronsUpDown,
+  FileVideo,
+  Film,
+  Music,
+  Share2,
+  Video,
   X
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface ProjectDialogProps {
@@ -63,7 +74,8 @@ const projectTypeIcons: Record<ProjectType, React.ReactNode> = {
 
 export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProps) {
   const { createProject, updateProject } = useProjects();
-  const { contacts } = useContacts();
+  const { contacts, loading: contactsLoading } = useContacts();
+  const { teamMembers, teams, teamsLoading } = useTeam();
   const isEditing = !!project;
 
   const [formData, setFormData] = useState({
@@ -82,6 +94,10 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [loading, setLoading] = useState(false);
+  const [clientSearchOpen, setClientSearchOpen] = useState(false);
+  const [assignMode, setAssignMode] = useState<'individual' | 'team'>('individual');
+  const [assignedTeamId, setAssignedTeamId] = useState<string>('');
+  const [memberSearchQuery, setMemberSearchQuery] = useState('');
 
   useEffect(() => {
     if (project) {
@@ -145,8 +161,38 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
     }
   };
 
-  const clientOptions = contacts.filter(c => c.role === 'Client');
-  const teamOptions = contacts.filter(c => c.status === 'Active');
+  const clientOptions = contacts ? contacts.filter(c => c.status === 'Active') : [];
+  const memberOptions = teamMembers ? teamMembers.filter(m => m.is_active !== false) : [];
+  console.log('Team Members:', memberOptions);
+  const teamOptions = teams || [];
+
+  // Helper function to get member display name
+  const getMemberName = (member: any) => {
+    if (member.name) return member.name;
+    if (member.first_name && member.last_name) return `${member.first_name} ${member.last_name}`;
+    if (member.first_name) return member.first_name;
+    if (member.last_name) return member.last_name;
+    return 'Unknown Member';
+  };
+
+  // Helper function to get member initials
+  const getMemberInitials = (member: any) => {
+    const name = getMemberName(member);
+    if (name === 'Unknown Member') return 'TM';
+    return name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  };
+
+  // Filter members based on search query
+  const filteredMembers = memberOptions.filter(member => {
+    const name = getMemberName(member).toLowerCase();
+    const role = (member.role || member.position || '').toLowerCase();
+    const email = (member.email || '').toLowerCase();
+    const searchLower = memberSearchQuery.toLowerCase();
+    
+    return name.includes(searchLower) || 
+           role.includes(searchLower) || 
+           email.includes(searchLower);
+  });
 
   const toggleTeamMember = (memberId: string) => {
     setFormData(prev => ({
@@ -157,11 +203,11 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
     }));
   };
 
-  const selectedMembers = teamOptions.filter(c => formData.team_members.includes(c.id));
+  const selectedMembers = memberOptions.filter(c => formData.team_members.includes(c.id));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Project' : 'Create New Project'}</DialogTitle>
           <DialogDescription>
@@ -169,8 +215,9 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full pr-4">
+            <form onSubmit={handleSubmit} className="space-y-6 pb-6">
             <div className="space-y-2">
               <Label htmlFor="title">Project Title *</Label>
               <Input
@@ -245,21 +292,68 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
 
               <div className="space-y-2">
                 <Label htmlFor="client">Client</Label>
-                <Select
-                  value={formData.client_id}
-                  onValueChange={(value) => setFormData({ ...formData, client_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientOptions.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={clientSearchOpen} onOpenChange={setClientSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={clientSearchOpen}
+                      className="w-full justify-between"
+                    >
+                      {formData.client_id
+                        ? clientOptions.find((client) => client.id === formData.client_id)?.name
+                        : "Select client..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search contacts..." />
+                      <CommandList>
+                        <CommandEmpty>
+                          {contactsLoading ? "Loading contacts..." : "No contact found."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          <ScrollArea className="h-48">
+                            {contactsLoading ? (
+                              <div className="flex items-center justify-center p-4">
+                                <div className="text-sm text-muted-foreground">Loading contacts...</div>
+                              </div>
+                            ) : (
+                              clientOptions.map((client) => (
+                                <CommandItem
+                                  key={client.id}
+                                  onSelect={() => {
+                                    setFormData({ ...formData, client_id: client.id });
+                                    setClientSearchOpen(false);
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2 w-full">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarFallback className="bg-blue-600 text-white text-xs">
+                                        {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium">{client.name}</p>
+                                      <p className="text-xs text-muted-foreground">{client.role} • {client.email}</p>
+                                    </div>
+                                    <Check
+                                      className={cn(
+                                        "ml-auto h-4 w-4",
+                                        formData.client_id === client.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                  </div>
+                                </CommandItem>
+                              ))
+                            )}
+                          </ScrollArea>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -340,50 +434,95 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
             </div>
 
             <div className="space-y-2">
-              <Label>Team Members</Label>
-              <div className="border rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
-                {teamOptions.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className={cn(
-                      "flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-slate-50",
-                      formData.team_members.includes(contact.id) && "bg-blue-50 hover:bg-blue-100"
+              <Label>Assign To</Label>
+              <Select value={assignMode} onValueChange={(value) => setAssignMode(value as 'individual' | 'team')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">Individual Members</SelectItem>
+                  <SelectItem value="team">Team</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {assignMode === 'team' ? (
+              <div className="space-y-2">
+                <Label>Team</Label>
+                <Select value={assignedTeamId} onValueChange={(value) => setAssignedTeamId(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamsLoading ? (
+                      <SelectItem value="" disabled>Loading teams...</SelectItem>
+                    ) : (
+                      teamOptions.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                      ))
                     )}
-                    onClick={() => toggleTeamMember(contact.id)}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-600 text-white text-xs">
-                        {contact.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900">{contact.name}</p>
-                      <p className="text-xs text-slate-600">{contact.role}</p>
-                    </div>
-                    {formData.team_members.includes(contact.id) && (
-                      <Badge className="bg-blue-600">Selected</Badge>
-                    )}
-                  </div>
-                ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {selectedMembers.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedMembers.map((member) => (
-                    <Badge key={member.id} variant="secondary" className="gap-1">
-                      {member.name}
-                      <X
-                        className="w-3 h-3 cursor-pointer"
-                        onClick={() => toggleTeamMember(member.id)}
-                      />
-                    </Badge>
+            ) : (
+              <div className="space-y-2">
+                <Label>Team Members</Label>
+                <Input
+                  placeholder="Search team members..."
+                  value={memberSearchQuery}
+                  onChange={(e) => setMemberSearchQuery(e.target.value)}
+                  className="mb-2"
+                />
+                <div className="border rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
+                  {filteredMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className={cn(
+                        "flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-slate-50",
+                        formData.team_members.includes(member.id) && "bg-blue-50 hover:bg-blue-100"
+                      )}
+                      onClick={() => toggleTeamMember(member.id)}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-600 text-white text-xs">
+                          {getMemberInitials(member)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900">{getMemberName(member)}</p>
+                        <p className="text-xs text-slate-600">{member.role || member.position || 'No Role'}</p>
+                      </div>
+                      {formData.team_members.includes(member.id) && (
+                        <Badge className="bg-blue-600">Selected</Badge>
+                      )}
+                    </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </form>
-        </ScrollArea>
+                {filteredMembers.length === 0 && memberSearchQuery && (
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    No members found matching "{memberSearchQuery}"
+                  </p>
+                )}
+                {formData.team_members.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {memberOptions.filter(m => formData.team_members.includes(m.id)).map((member) => (
+                      <Badge key={member.id} variant="secondary" className="gap-1">
+                        {getMemberName(member)}
+                        <X
+                          className="w-3 h-3 cursor-pointer"
+                          onClick={() => toggleTeamMember(member.id)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            </form>
+          </ScrollArea>
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t pt-4">
           <Button
             type="button"
             variant="outline"
