@@ -163,7 +163,6 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
 
   const clientOptions = contacts ? contacts.filter(c => c.status === 'Active') : [];
   const memberOptions = teamMembers ? teamMembers.filter(m => m.is_active !== false) : [];
-  console.log('Team Members:', memberOptions);
   const teamOptions = teams || [];
 
   // Helper function to get member display name
@@ -202,8 +201,6 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
         : [...prev.team_members, memberId]
     }));
   };
-
-  const selectedMembers = memberOptions.filter(c => formData.team_members.includes(c.id));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
